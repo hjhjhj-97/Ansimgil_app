@@ -25,16 +25,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     '크게': 22.0,
   };
 
+  @override
+  void initState() {
+    super.initState();
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    _colorContrast = themeManager.isHighContrast ? '고대비' : '기본';
+  }
+
   double _getFontSizeValue() {
     return _fontSizeMap[_fontSize] ?? 18.0;
   }
 
-  ButtonStyle _getButtonSizeStyle(String option) {
+  ButtonStyle _getButtonSizeStyle(BuildContext context, String option) {
+    final Color primaryColor = Theme.of(context).primaryColor;
     double currentSize = _fontSizeMap[option] ?? 18.0;
     double paddingFactor = (currentSize / 18.0);
 
     return ElevatedButton.styleFrom(
-      backgroundColor: _fontSize == option ? darkBlue : Colors.grey[300],
+      backgroundColor: _fontSize == option ? primaryColor : Colors.grey[300],
       foregroundColor: _fontSize == option ? Colors.white : Colors.black,
       padding: EdgeInsets.symmetric(
         vertical: 8.0 * paddingFactor,
@@ -44,9 +52,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  ButtonStyle _getContrastStyle(String option) {
+  ButtonStyle _getContrastStyle(BuildContext context, String option) {
+    final Color primaryColor = Theme.of(context).primaryColor;
     return ElevatedButton.styleFrom(
-      backgroundColor: _colorContrast == option ? darkBlue : Colors.grey[300],
+      backgroundColor: _colorContrast == option ? primaryColor : Colors.grey[300],
       foregroundColor: _colorContrast == option ? Colors.white : Colors.black,
       minimumSize: const Size(80, 40),
     );
@@ -57,9 +66,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('환경설정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+        title: Text('환경설정', style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
         ),
       ),
@@ -147,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: _fontSizeOptions.map((option) {
               return ElevatedButton(
                 onPressed: () => setState(() => _fontSize = option),
-                style: _getButtonSizeStyle(option),
+                style: _getButtonSizeStyle(context,option),
                 child: Text(option),
               );
             }).toList(),
@@ -166,7 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   final bool enableContrast = (option == '고대비');
                   Provider.of<ThemeManager>(context, listen: false).setIsHighContrast(enableContrast);
                 },
-                style: _getContrastStyle(option),
+                style: _getContrastStyle(context,option),
                 child: Text(option),
               );
             }).toList(),

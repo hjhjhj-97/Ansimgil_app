@@ -25,13 +25,12 @@ class FavoritesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final TextStyle listTitleStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
-      fontSize: 18,
       fontWeight: FontWeight.bold,
       color: currentPrimaryColor,
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('즐겨찾기',style: TextStyle(fontWeight: FontWeight.bold),),
+        title: Text('즐겨찾기',style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),

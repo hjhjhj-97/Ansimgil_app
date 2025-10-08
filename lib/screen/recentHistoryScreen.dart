@@ -25,7 +25,6 @@ class RecentHistoryScreen extends StatelessWidget {
 
   // 날짜/시간 포맷팅을 위한 간단한 함수
   String _formatDate(DateTime date) {
-    // Dart의 padLeft를 사용하여 0을 채웁니다.
     return '${date.month}/${date.day} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
@@ -34,7 +33,7 @@ class RecentHistoryScreen extends StatelessWidget {
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('최근 검색기록',style: TextStyle(fontWeight: FontWeight.bold),), // 화면 설계서 제목
+        title: Text('최근 검색기록',style: TextStyle(fontWeight: FontWeight.bold),), // 화면 설계서 제목
         leading: IconButton(
           icon: const Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
@@ -57,7 +56,6 @@ class RecentHistoryScreen extends StatelessWidget {
               title: Text(
                 route.route,
                 style: TextStyle(
-                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: currentPrimaryColor,
                 ),

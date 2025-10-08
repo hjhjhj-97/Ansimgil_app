@@ -13,57 +13,35 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isVibrationOn = true;
   double _vibrationIntensity = 0.5;
-  String _fontSize = '중간';
-  String _colorContrast = '기본';
 
   final List<String> _fontSizeOptions = ['작게', '중간', '크게'];
   final List<String> _contrastOptions = ['기본', '고대비'];
 
-  final Map<String, double> _fontSizeMap = {
-    '작게': 14.0,
-    '중간': 18.0,
-    '크게': 22.0,
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    final themeManager = Provider.of<ThemeManager>(context, listen: false);
-    _colorContrast = themeManager.isHighContrast ? '고대비' : '기본';
-  }
-
-  double _getFontSizeValue() {
-    return _fontSizeMap[_fontSize] ?? 18.0;
-  }
-
-  ButtonStyle _getButtonSizeStyle(BuildContext context, String option) {
+  ButtonStyle _getButtonSizeStyle(BuildContext context, String option, String currentFontSize) {
     final Color primaryColor = Theme.of(context).primaryColor;
-    double currentSize = _fontSizeMap[option] ?? 18.0;
-    double paddingFactor = (currentSize / 18.0);
-
     return ElevatedButton.styleFrom(
-      backgroundColor: _fontSize == option ? primaryColor : Colors.grey[300],
-      foregroundColor: _fontSize == option ? Colors.white : Colors.black,
-      padding: EdgeInsets.symmetric(
-        vertical: 8.0 * paddingFactor,
-        horizontal: 16.0 * paddingFactor,
-      ),
+      backgroundColor: currentFontSize == option ? primaryColor : Colors.grey[300],
+      foregroundColor: currentFontSize == option ? Colors.white : Colors.black,
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       minimumSize: const Size(60, 40),
     );
   }
 
-  ButtonStyle _getContrastStyle(BuildContext context, String option) {
+  ButtonStyle _getContrastStyle(BuildContext context, String option, String currentContrast) {
     final Color primaryColor = Theme.of(context).primaryColor;
     return ElevatedButton.styleFrom(
-      backgroundColor: _colorContrast == option ? primaryColor : Colors.grey[300],
-      foregroundColor: _colorContrast == option ? Colors.white : Colors.black,
+      backgroundColor: currentContrast == option ? primaryColor : Colors.grey[300],
+      foregroundColor: currentContrast == option ? Colors.white : Colors.black,
       minimumSize: const Size(80, 40),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = context.watch<ThemeManager>();
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
+    final String currentFontSize = themeManager.fontSize;
+    final String currentColorContrast = themeManager.isHighContrast ? '고대비' : '기본';
     return Scaffold(
       appBar: AppBar(
         title: Text('환경설정', style: TextStyle(fontWeight: FontWeight.bold),),
@@ -75,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: <Widget>[
-          Text('진동 알림 설정', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('진동 알림 설정', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -87,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 activeColor: currentPrimaryColor,
               ),
-              const Text('ON', style: TextStyle(fontSize: 16)),
+              Text('ON',),
               Radio<bool>(
                 value: false,
                 groupValue: _isVibrationOn,
@@ -96,13 +74,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 activeColor: currentPrimaryColor,
               ),
-              const Text('OFF', style: TextStyle(fontSize: 16)),
+              Text('OFF',),
             ],
           ),
-
           const Divider(height: 30),
 
-          Text('진동 세기 조절', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,)),
+          Text('진동 세기 조절', style: TextStyle(fontWeight: FontWeight.bold,)),
           const SizedBox(height: 5),
           Slider(
             value: _vibrationIntensity,
@@ -121,18 +98,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 5.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('약', style: TextStyle(fontSize: 14)),
-                Text('강', style: TextStyle(fontSize: 14)),
+              children:[
+                Text('약', ),
+                Text('강', ),
               ],
             ),
           ),
-
           const Divider(height: 30),
-
-          Text('글자 크기 조절', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,)),
+          Text('글자 크기 조절', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 15),
-
           Container(
             padding: const EdgeInsets.all(12.0),
             decoration: BoxDecoration(
@@ -142,40 +116,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               '안심길',
               style: TextStyle(
-                fontSize: _getFontSizeValue(),
+                fontSize: themeManager.fontSizeValue,
                 fontWeight: FontWeight.bold,
                 color: currentPrimaryColor,
               ),
             ),
           ),
-
           const SizedBox(height: 10),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _fontSizeOptions.map((option) {
               return ElevatedButton(
-                onPressed: () => setState(() => _fontSize = option),
-                style: _getButtonSizeStyle(context,option),
+                onPressed: () {
+                  context.read<ThemeManager>().setFontSize(option);
+                },
+                style: _getButtonSizeStyle(context, option, currentFontSize),
                 child: Text(option),
               );
             }).toList(),
           ),
-
           const Divider(height: 30),
 
-          Text('색상 대비 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,)),
+          Text('색상 대비 선택', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _contrastOptions.map((option) {
               return ElevatedButton(
                 onPressed: () {
-                  setState(() => _colorContrast = option);
                   final bool enableContrast = (option == '고대비');
-                  Provider.of<ThemeManager>(context, listen: false).setIsHighContrast(enableContrast);
+                  context.read<ThemeManager>().setIsHighContrast(enableContrast);
                 },
-                style: _getContrastStyle(context,option),
+                style: _getContrastStyle(context, option, currentColorContrast),
                 child: Text(option),
               );
             }).toList(),

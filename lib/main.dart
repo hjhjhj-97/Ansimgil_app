@@ -72,7 +72,7 @@ class AnsimGilApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeManager = Provider.of<ThemeManager>(context);
+    final themeManager = context.watch<ThemeManager>();
     return MaterialApp.router(
       routerConfig: _router,
       title: '안심길',

@@ -37,7 +37,6 @@ class HomeScreen extends StatelessWidget {
                   '안심길 메뉴',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -65,11 +64,10 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '안심길',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
             color: Colors.white,
           ),
         ),
@@ -124,9 +122,8 @@ class HomeScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,),
                 ),
-                child: const Text('길 안내'),
+                child: Text('길 안내'),
               ),
             ),
             const SizedBox(height: 20),
@@ -139,10 +136,9 @@ class HomeScreen extends StatelessWidget {
           return BottomNavigationBar(
             currentIndex: 0,
             onTap: (index) {
-              if (index == 3) { // '메뉴' 버튼 인덱스
+              if (index == 3) {
                 Scaffold.of(innerContext).openEndDrawer();
               } else {
-                // 다른 탭 이동 로직
                 _onItemTapped(innerContext, index);
               }
             },
@@ -168,7 +164,7 @@ class HomeScreen extends StatelessWidget {
       leading: Icon(icon, color: itemColor.withOpacity(0.7)),
       title: Text(
         title,
-        style: TextStyle(color: itemColor, fontSize: 16),
+        style: TextStyle(color: itemColor,),
       ),
       onTap: onTap,
     );

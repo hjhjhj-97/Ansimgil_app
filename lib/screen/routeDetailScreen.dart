@@ -13,7 +13,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
 
   void _toggleFavorite() {
     setState(() {
-      _isFavorite = !_isFavorite; // 상태 토글 (true <-> false)
+      _isFavorite = !_isFavorite;
     });
 
     String message;
@@ -36,12 +36,11 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final Color currentAppbarFgColor = Theme.of(context).appBarTheme.foregroundColor!;
     final TextStyle listTitleStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
-        fontSize: 16,
         fontWeight: FontWeight.bold
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('경로 상세 정보', style: TextStyle(fontWeight: FontWeight.bold),),
+        title: Text('경로 상세 정보', style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back,),
           onPressed: () {
@@ -64,14 +63,13 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               '출발지: 현 위치 (OOOO대학교)',
-              style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '목적지: 서울역 1호선 (지하철)',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
 
@@ -114,9 +112,9 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   '길 안내 시작 확인',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),

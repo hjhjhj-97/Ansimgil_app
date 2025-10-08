@@ -31,12 +31,12 @@ class EmergencyContactsScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               '여기에 비상 연락처 목록 및 추가 기능이 표시됩니다.',
-              style: TextStyle(fontSize: 18, color: textColor.withOpacity(0.8)),
+              style: TextStyle(color: textColor.withOpacity(0.8)),
             ),
             const SizedBox(height: 10),
             Text(
               '최대 3개의 보호자 연락처를 등록할 수 있습니다.',
-              style: TextStyle(fontSize: 14, color: hintColor),
+              style: TextStyle(color: hintColor),
             ),
           ],
         ),

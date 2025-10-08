@@ -25,11 +25,11 @@ class GuidanceStartScreen extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '실시간 길 안내',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        automaticallyImplyLeading: false, // 안내 중 뒤로 가기 방지
+        automaticallyImplyLeading: false,
       ),
 
       body: Stack(
@@ -39,7 +39,7 @@ class GuidanceStartScreen extends StatelessWidget {
             child: Center(
               child: Text(
                 '실시간 지도 및 경로 표시 영역',
-                style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 18),
+                style: TextStyle(color: colorScheme.onSurfaceVariant,),
               ),
             ),
           ),
@@ -55,7 +55,7 @@ class GuidanceStartScreen extends StatelessWidget {
                   onPressed: () {
                     context.go('/home');
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('길 안내를 종료합니다.'), duration: Duration(seconds: 1)),
+                      SnackBar(content: Text('길 안내를 종료합니다.'), duration: Duration(seconds: 1)),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -65,7 +65,7 @@ class GuidanceStartScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                   ),
-                  child: const Text('안내 종료', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  child: Text('안내 종료', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ),

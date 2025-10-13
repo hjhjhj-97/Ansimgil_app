@@ -58,6 +58,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _increaseVibration() {
+    final newValue = (_vibrationIntensity + 0.25).clamp(0.0, 1.0);
+    setState(() {
+      _vibrationIntensity = newValue;
+      _feedbackVibration();
+      _saveVibrationSettings();
+    });
+  }
+
+  void _decreaseVibration() {
+    final newValue = (_vibrationIntensity - 0.25).clamp(0.0, 1.0);
+    setState(() {
+      _vibrationIntensity = newValue;
+      _feedbackVibration();
+      _saveVibrationSettings();
+    });
+  }
+
+  void _feedbackVibration() {
+    if (_isVibrationOn && _vibrationIntensity > 0) {
+      int amplitude = (_vibrationIntensity * 254).round() + 1;
+      Vibration.vibrate(duration: 100, amplitude: amplitude);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final themeManager = context.watch<ThemeManager>();
@@ -112,39 +138,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           Text('진동 세기 조절', style: TextStyle(fontWeight: FontWeight.bold,)),
           const SizedBox(height: 5),
-          Slider(
-            value: _vibrationIntensity,
-            min: 0.0,
-            max: 1.0,
-            divisions: 5,
-            label: (_vibrationIntensity * 100).round().toString(),
-            onChanged: _isVibrationOn
-                ? (double value) {
-              setState(() => _vibrationIntensity = value);
-              int amplitude = (value * 254).round() + 1;
-              if (value > 0) {
-                Vibration.vibrate(duration: 100, amplitude: amplitude);
-                print('진동 세기(amplitude): $amplitude');
-              }
-            }
-            : null,
-            onChangeEnd: (double value) {
-              if (_isVibrationOn) {
-                _saveVibrationSettings();
-                print('최종 저장된 진동 세기(0.0 ~ 1.0): $value');
-              }
-            },
-            activeColor: _isVibrationOn ? currentPrimaryColor : Colors.grey,
-            inactiveColor: _isVibrationOn ? currentPrimaryColor.withOpacity(0.3) : Colors.grey[300],
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children:[
-                Text('약', ),
-                Text('강', ),
-              ],
+          Semantics(
+            label: '진동 세기 조절',
+            value: '${(_vibrationIntensity * 100).round()} 퍼센트',
+            increasedValue: '진동 세기가 강해집니다.',
+            decreasedValue: '진동 세기가 약해집니다.',
+            onIncrease: _increaseVibration,
+            onDecrease: _decreaseVibration,
+            child: Column(
+              children: [
+                Slider(
+                  value: _vibrationIntensity,
+                  min: 0.0,
+                  max: 1.0,
+                  divisions: 5,
+                  label: (_vibrationIntensity * 100).round().toString(),
+                  onChanged: _isVibrationOn
+                      ? (double value) {
+                    setState(() => _vibrationIntensity = value);
+                    int amplitude = (value * 254).round() + 1;
+                    if (value > 0) {
+                      Vibration.vibrate(duration: 100, amplitude: amplitude);
+                      print('진동 세기(amplitude): $amplitude');
+                    }
+                  }
+                      : null,
+                  onChangeEnd: (double value) {
+                    if (_isVibrationOn) {
+                      _saveVibrationSettings();
+                      print('최종 저장된 진동 세기(0.0 ~ 1.0): $value');
+                    }
+                  },
+                  activeColor: _isVibrationOn ? currentPrimaryColor : Colors.grey,
+                  inactiveColor: _isVibrationOn ? currentPrimaryColor.withOpacity(0.3) : Colors.grey[300],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                  child: ExcludeSemantics(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children:[
+                        Text('약', ),
+                        Text('강', ),
+                      ],
+                    ),
+                  ),
+                ),
+              ]
             ),
           ),
           const Divider(height: 30),

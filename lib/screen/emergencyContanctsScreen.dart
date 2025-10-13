@@ -2,6 +2,7 @@ import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/emergency_contact.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EmergencyContactsScreen extends StatefulWidget {
   const EmergencyContactsScreen({super.key});
@@ -20,6 +21,34 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     super.initState();
     _loadContacts();
   }
+
+  Future<void> _makePhoneCall(String phoneNumber, String contactName) async {
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: cleanNumber,
+    );
+    print('전화 시도 URL: $launchUri');
+
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$contactName 님에게 전화를 걸 수 없습니다.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('전화 기능 실행 중 오류가 발생했습니다.')),
+        );
+      }
+    }
+  }
+
   Future<void> _loadContacts() async {
     try {
       final contacts = await DatabaseHelper.instance.getAllEmergencyContacts();
@@ -182,9 +211,15 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                         if(_currentPrimaryContactId == contact.id)
                           const SizedBox(width: 8),
                         IconButton(
+                          icon: Icon(Icons.phone, color: Colors.grey,),
+                          tooltip: '${contact.name} 님에게 전화 걸기',
+                          onPressed: () => _makePhoneCall(contact.phoneNumber, contact.name),
+                        ),
+                        IconButton(
                           icon: Icon(Icons.delete, color: Colors.grey),
+                          tooltip: '${contact.name} 님 연락처 삭제',
                           onPressed: () => _confirmDelete(context, contact),
-                        )
+                        ),
                       ],
                     )
                 );

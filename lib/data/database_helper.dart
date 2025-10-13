@@ -30,7 +30,7 @@ class DatabaseHelper {
      CREATE TABLE "emergency_contacts" (
       "id"	INTEGER NOT NULL,
       "name"	TEXT NOT NULL,
-      "phone__number"	TEXT NOT NULL,
+      "phone_number"	TEXT NOT NULL,
       "is_primary"	INTEGER NOT NULL DEFAULT 0,
       "message_template"	TEXT,
       PRIMARY KEY("id" AUTOINCREMENT)
@@ -70,12 +70,26 @@ class DatabaseHelper {
 
   Future<int> insertEmergencyContact(EmergencyContact emergency) async {
     Database db = await instance.database;
-    return await db.insert('emergency_contacts', emergency.toMap());
+    return await db.transaction((txn) async {
+      if (emergency.isPrimary) {
+        await txn.update(
+          'emergency_contacts',
+          {'is_primary': 0},
+          where: 'is_primary = ?',
+          whereArgs: [1],
+        );
+      }
+      return await txn.insert('emergency_contacts', emergency.toMap());
+    });
   }
+
 
   Future<List<EmergencyContact>> getAllEmergencyContacts() async {
     Database db = await instance.database;
-    final List<Map<String, dynamic>> maps = await db.query('emergency_contacts');
+    final List<Map<String, dynamic>> maps = await db.query(
+        'emergency_contacts',
+        orderBy: 'is_primary DESC, id ASC'
+    );
     return List.generate(maps.length, (i) {
       return EmergencyContact.fromMap(maps[i]);
     });
@@ -97,11 +111,29 @@ class DatabaseHelper {
   Future<int> updateEmergencyContact(EmergencyContact emergency) async {
     Database db = await instance.database;
     return await db.update(
-        'emergency_contacts',
-        emergency.toMap(),
-        where: 'id=?',
-        whereArgs: [emergency.id],
+      'emergency_contacts',
+      emergency.toMap(),
+      where: 'id=?',
+      whereArgs: [emergency.id],
     );
+  }
+
+  Future<int> updatePrimaryContact(int newPrimaryId) async {
+    Database db = await instance.database;
+    return await db.transaction((txn) async {
+      await txn.update(
+        'emergency_contacts',
+        {'is_primary': 0},
+        where: 'is_primary = ?',
+        whereArgs: [1],
+      );
+      return await txn.update(
+        'emergency_contacts',
+        {'is_primary': 1},
+        where: 'id = ?',
+        whereArgs: [newPrimaryId],
+      );
+    });
   }
 
   Future<int> deleteEmergencyContact(int id) async {

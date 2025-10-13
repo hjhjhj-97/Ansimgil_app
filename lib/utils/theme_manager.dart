@@ -31,6 +31,10 @@ final ThemeData defaultTheme = ThemeData(
       foregroundColor: Colors.white,
     ),
   ),
+  dialogTheme: DialogTheme(
+    titleTextStyle: _baseTextTheme.titleLarge,
+    contentTextStyle: _baseTextTheme.bodyMedium,
+  )
 );
 
 final ThemeData highContrastTheme = ThemeData(
@@ -54,6 +58,30 @@ final ThemeData highContrastTheme = ThemeData(
       backgroundColor: Colors.black,
       foregroundColor: Colors.yellowAccent,
       side: const BorderSide(color: Colors.yellow, width: 2),
+    ),
+  ),
+  unselectedWidgetColor: Colors.white70,
+  inputDecorationTheme: const InputDecorationTheme(
+    labelStyle: TextStyle(color: Colors.white70,),
+    hintStyle: TextStyle(color: Colors.white54,),
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.white70,),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.yellow, width: 2),
+    ),
+    border: OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.white70,),
+    ),
+  ),
+  dialogTheme: DialogTheme(
+    backgroundColor: Color(0XFF222222),
+    titleTextStyle: _baseTextTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold,),
+    contentTextStyle: _baseTextTheme.bodyMedium?.copyWith(color: Colors.white,),
+  ),
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(
+      foregroundColor: Colors.white,
     ),
   ),
 );

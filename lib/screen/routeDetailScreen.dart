@@ -42,7 +42,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
       appBar: AppBar(
         title: Text('경로 상세 정보', style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back,),
+          icon:  Icon(Icons.arrow_back,),
           onPressed: () {
             context.go('/home');
           },

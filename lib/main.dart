@@ -1,3 +1,4 @@
+import 'package:ansimgil_app/screen/add_contact_screen.dart';
 import 'package:ansimgil_app/screen/emergencyContanctsScreen.dart';
 import 'package:ansimgil_app/screen/favoriteScreen.dart';
 import 'package:ansimgil_app/screen/guidanceStartScreen.dart';
@@ -55,6 +56,12 @@ final GoRouter _router = GoRouter(
         return const EmergencyContactsScreen();
       },
     ),
+    GoRoute(
+        path: '/add_contacts',
+        builder: (BuildContext context, GoRouterState state) {
+          return const AddContactScreen();
+        }
+    )
   ],
 );
 

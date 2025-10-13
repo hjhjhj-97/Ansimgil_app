@@ -23,7 +23,6 @@ class RecentHistoryScreen extends StatelessWidget {
     RecentRoute('현 위치 → 김포공항', DateTime(2025, 9, 26, 7, 00), true),
   ];
 
-  // 날짜/시간 포맷팅을 위한 간단한 함수
   String _formatDate(DateTime date) {
     return '${date.month}/${date.day} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
@@ -33,9 +32,9 @@ class RecentHistoryScreen extends StatelessWidget {
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     return Scaffold(
       appBar: AppBar(
-        title: Text('최근 검색기록',style: TextStyle(fontWeight: FontWeight.bold),), // 화면 설계서 제목
+        title: Text('최근 검색기록',style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back,),
+          icon:  Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
         ),
       ),

@@ -32,7 +32,7 @@ class FavoritesScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('즐겨찾기',style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back,),
+          icon: Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
         ),
       ),
@@ -58,7 +58,7 @@ class FavoritesScreen extends StatelessWidget {
                   item.subtitle,
                 ),
                 trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  icon: Icon(Icons.delete, color: Colors.redAccent),
                   onPressed: () {
                     // TODO: 즐겨찾기 삭제 로직 (실제 DB에서 삭제)
                     ScaffoldMessenger.of(context).showSnackBar(

@@ -21,7 +21,6 @@ class HomeScreen extends StatelessWidget {
   }
   @override
   Widget build(BuildContext context) {
-    final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final Color currentAppbarBg = Theme.of(context).appBarTheme.backgroundColor!;
     return Scaffold(
       backgroundColor: Colors.white,
@@ -93,9 +92,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.mic, color: Colors.blue, size: 28),
+                  Icon(Icons.mic, color: Colors.blue,),
                   SizedBox(width: 10),
                   Expanded(
                     child: TextField(
@@ -142,7 +141,7 @@ class HomeScreen extends StatelessWidget {
                 _onItemTapped(innerContext, index);
               }
             },
-            items: const <BottomNavigationBarItem>[
+            items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: '홈'),
               BottomNavigationBarItem(icon: Icon(Icons.history), label: '최근 검색 목록'),
               BottomNavigationBarItem(icon: Icon(Icons.star), label: '즐겨찾기'),

@@ -28,4 +28,18 @@ class EmergencyContact {
       isPrimary: map['is_primary'] == 1,
     );
   }
+
+  EmergencyContact copyWith({
+    int? id,
+    String? name,
+    String? phoneNumber,
+    bool? isPrimary,
+  }) {
+    return EmergencyContact(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      isPrimary: isPrimary ?? this.isPrimary,
+    );
+  }
 }

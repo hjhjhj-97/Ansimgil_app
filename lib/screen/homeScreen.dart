@@ -22,6 +22,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color currentAppbarBg = Theme.of(context).appBarTheme.backgroundColor!;
+    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       endDrawer: Drawer(
@@ -99,7 +100,6 @@ class HomeScreen extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: "OO역으로 가는 길",
                         border: UnderlineInputBorder(borderSide: BorderSide.none)
                       ),
                     )

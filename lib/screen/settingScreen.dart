@@ -2,6 +2,8 @@ import 'package:ansimgil_app/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +18,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   final List<String> _fontSizeOptions = ['작게', '중간', '크게'];
   final List<String> _contrastOptions = ['기본', '고대비'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVibrationSettings();
+  }
+
+  Future<void> _loadVibrationSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isVibrationOn = prefs.getBool('isVibrationOn') ?? true;
+      _vibrationIntensity = prefs.getDouble('vibrationIntensity') ?? 0.5;
+    });
+  }
+
+  Future<void> _saveVibrationSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isVibrationOn', _isVibrationOn);
+    await prefs.setDouble('vibrationIntensity', _vibrationIntensity);
+  }
 
   ButtonStyle _getButtonSizeStyle(BuildContext context, String option, String currentFontSize) {
     final Color primaryColor = Theme.of(context).primaryColor;
@@ -61,7 +83,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: true,
                 groupValue: _isVibrationOn,
                 onChanged: (val) {
-                  if (val != null) setState(() => _isVibrationOn = val);
+                  if (val != null) {
+                    setState(() => _isVibrationOn = val);
+                    _saveVibrationSettings();
+                    if (val == true) {
+                      Vibration.vibrate(duration: 100, amplitude: 128);
+                    }
+                  }
                 },
                 activeColor: currentPrimaryColor,
               ),
@@ -70,7 +98,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: false,
                 groupValue: _isVibrationOn,
                 onChanged: (val) {
-                  if (val != null) setState(() => _isVibrationOn = val);
+                  if (val != null) {
+                    setState(() => _isVibrationOn = val);
+                    _saveVibrationSettings();
+                  }
                 },
                 activeColor: currentPrimaryColor,
               ),
@@ -90,9 +121,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: _isVibrationOn
                 ? (double value) {
               setState(() => _vibrationIntensity = value);
+              int amplitude = (value * 254).round() + 1;
+              if (value > 0) {
+                Vibration.vibrate(duration: 100, amplitude: amplitude);
+                print('진동 세기(amplitude): $amplitude');
+              }
             }
-                : null,
+            : null,
+            onChangeEnd: (double value) {
+              if (_isVibrationOn) {
+                _saveVibrationSettings();
+                print('최종 저장된 진동 세기(0.0 ~ 1.0): $value');
+              }
+            },
             activeColor: _isVibrationOn ? currentPrimaryColor : Colors.grey,
+            inactiveColor: _isVibrationOn ? currentPrimaryColor.withOpacity(0.3) : Colors.grey[300],
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5.0),

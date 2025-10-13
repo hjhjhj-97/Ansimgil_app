@@ -63,7 +63,7 @@ final ThemeData highContrastTheme = ThemeData(
   unselectedWidgetColor: Colors.white70,
   inputDecorationTheme: const InputDecorationTheme(
     labelStyle: TextStyle(color: Colors.white70,),
-    hintStyle: TextStyle(color: Colors.white54,),
+    hintStyle: TextStyle(color: Colors.white70,),
     enabledBorder: OutlineInputBorder(
       borderSide: BorderSide(color: Colors.white70,),
     ),

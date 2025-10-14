@@ -29,7 +29,7 @@ class RecentHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color currentPrimaryColor = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('최근 검색기록',style: TextStyle(fontWeight: FontWeight.bold),),
@@ -44,26 +44,24 @@ class RecentHistoryScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final route = _recentRoutes[index];
           return Card(
-            color: Theme.of(context).cardColor,
-            shadowColor: Theme.of(context).shadowColor,
+            color: theme.cardTheme.color,
+            shape: theme.cardTheme.shape,
+            elevation: theme.cardTheme.elevation,
             margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: ListTile(
               leading: Icon(
                 route.isRoute ? Icons.near_me : Icons.location_on,
-                color: currentPrimaryColor,
+                color: theme.listTileTheme.iconColor,
               ),
               title: Text(
                 route.route,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: currentPrimaryColor,
-                ),
+                style: theme.textTheme.titleMedium,
               ),
               subtitle: Text(
                 '검색 시각: ${_formatDate(route.date)}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey,),
+                style: theme.textTheme.bodyMedium,
               ),
-          trailing: Icon(Icons.redo, color: currentPrimaryColor.withOpacity(0.7)),
+          trailing: Icon(Icons.redo,color: theme.listTileTheme.iconColor,),
           onTap: () {
                 // TODO: 해당 경로를 선택하여 경로 상세 화면으로 이동하는 로직
                 ScaffoldMessenger.of(context).showSnackBar(

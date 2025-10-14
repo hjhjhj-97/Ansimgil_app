@@ -1,8 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  NCameraPosition _initialCameraPosition = const NCameraPosition(
+    target: NLatLng(37.5665, 126.9780),
+    zoom: 15,
+  );
+
+  bool _isLoadingLocation = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocationAndSetMap();
+  }
+
+  Future<void> _getCurrentLocationAndSetMap() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      setState(() { _isLoadingLocation = false; });
+      return Future.error('위치 서비스가 비활성화되어 있습니다.');
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        setState(() { _isLoadingLocation = false; });
+        return Future.error('위치 권한이 거부되었습니다.');
+      }
+    }
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+      setState(() {
+        _initialCameraPosition = NCameraPosition(
+          target: NLatLng(position.latitude, position.longitude),
+          zoom: 16,
+        );
+        _isLoadingLocation = false;
+      });
+    } catch (e) {
+      print("위치 가져오기 오류: $e");
+      setState(() { _isLoadingLocation = false; });
+    }
+  }
 
   void _onItemTapped(BuildContext context, int index) {
     switch (index) {
@@ -19,26 +73,26 @@ class HomeScreen extends StatelessWidget {
         break;
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    final Color currentAppbarBg = Theme.of(context).appBarTheme.backgroundColor!;
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       endDrawer: Drawer(
         child: Container(
-          color: currentAppbarBg,
+          color: theme.appBarTheme.backgroundColor,
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
               DrawerHeader(
-                decoration: BoxDecoration(color: currentAppbarBg),
+                decoration: BoxDecoration(color: theme.appBarTheme.backgroundColor),
                 child: Text(
                   '안심길 메뉴',
-                  style: TextStyle(
-                    color: Colors.white,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: theme.appBarTheme.foregroundColor,
                     fontWeight: FontWeight.bold,
-                  ),
+                  )
                 ),
               ),
               _buildDrawerItem(
@@ -82,12 +136,14 @@ class HomeScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.cardTheme.color,
                 borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-                boxShadow: const [
+                border: Border.fromBorderSide(
+                    (theme.cardTheme.shape as RoundedRectangleBorder?)?.side ?? BorderSide.none
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: theme.shadowColor.withOpacity(0.1),
                     blurRadius: 4.0,
                     offset: Offset(0, 2),
                   ),
@@ -95,11 +151,13 @@ class HomeScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.mic, color: Colors.blue,),
+                  Icon(Icons.mic, color:theme.primaryColor,),
                   SizedBox(width: 10),
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
+                        hintText: '음성 검색 또는 입력해주세요.',
+                        hintStyle: theme.inputDecorationTheme.hintStyle,
                         border: UnderlineInputBorder(borderSide: BorderSide.none)
                       ),
                     )
@@ -107,8 +165,23 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            const Spacer(),
+            const SizedBox(height: 16,),
+            Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular((10.0)),
+                  child: _isLoadingLocation
+                      ? const Center(child: CircularProgressIndicator())
+                      : NaverMap(
+                    options: NaverMapViewOptions(
+                      initialCameraPosition: _initialCameraPosition,
+                      mapType: NMapType.basic,
+                      locationButtonEnable: true,
+                      liteModeEnable: false,
+                    ),
+                  ),
+                ),
+            ),
+            const SizedBox(height: 20,),
 
             SizedBox(
               width: double.infinity,
@@ -153,17 +226,16 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-  Widget _buildDrawerItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
-    final Color drawerBackgroundColor = Theme.of(context).appBarTheme.backgroundColor!;
-    final bool isDark = drawerBackgroundColor.computeLuminance() < 0.5;
 
-    final Color itemColor = isDark ? Colors.white : Colors.black;
+  Widget _buildDrawerItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+    final theme = Theme.of(context);
+    final color = theme.appBarTheme.foregroundColor;
 
     return ListTile(
-      leading: Icon(icon, color: itemColor.withOpacity(0.7)),
+      leading: Icon(icon, color: color?.withOpacity(0.7)),
       title: Text(
         title,
-        style: TextStyle(color: itemColor,),
+        style: TextStyle(color: color,),
       ),
       onTap: onTap,
     );

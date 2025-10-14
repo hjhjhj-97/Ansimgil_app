@@ -34,6 +34,14 @@ final ThemeData defaultTheme = ThemeData(
   dialogTheme: DialogTheme(
     titleTextStyle: _baseTextTheme.titleLarge,
     contentTextStyle: _baseTextTheme.bodyMedium,
+  ),
+  cardTheme: CardTheme(
+    color: Colors.white,
+    elevation: 2.0,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      side: BorderSide(color: Colors.grey.shade200, width: 1),
+    ),
   )
 );
 
@@ -84,6 +92,14 @@ final ThemeData highContrastTheme = ThemeData(
       foregroundColor: Colors.white,
     ),
   ),
+  cardTheme: CardTheme(
+    color: const Color(0XFF1C1C1E),
+    elevation: 0,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12.0),
+      side: BorderSide(color: Colors.white54, width: 1),
+    ),
+  )
 );
 
 class ThemeManager with ChangeNotifier {

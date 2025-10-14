@@ -8,6 +8,8 @@ import 'package:ansimgil_app/screen/routeDetailScreen.dart';
 import 'package:ansimgil_app/screen/settingScreen.dart';
 import 'package:ansimgil_app/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -65,7 +67,17 @@ final GoRouter _router = GoRouter(
   ],
 );
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+
+  await FlutterNaverMap().init(
+    clientId: dotenv.env['NAVER_MAP_CLIENT_ID'],
+    onAuthFailed: (e) {
+      print('네이버맵 인증 실패: $e');
+    }
+  );
+
   runApp(ChangeNotifierProvider(
       create: (context) => ThemeManager(),
       child: const AnsimGilApp()

@@ -56,6 +56,7 @@ class FavoritesScreen extends StatelessWidget {
                 ),
                 subtitle: Text(
                   item.subtitle,
+                  style: listTitleStyle,
                 ),
                 trailing: IconButton(
                   icon: Icon(Icons.delete, color: Colors.redAccent),

@@ -9,8 +9,8 @@ class RecentRoute {
   const RecentRoute(this.route, this.date, this.isRoute);
 }
 
-class RecentHistoryScreen extends StatelessWidget {
-  RecentHistoryScreen({super.key});
+class SearchHistoryScreen extends StatelessWidget {
+  SearchHistoryScreen({super.key});
 
   final List<RecentRoute> _recentRoutes = [
     RecentRoute('XX아파트 → 서울역', DateTime(2025, 9, 30, 9, 05), true),
@@ -65,7 +65,7 @@ class RecentHistoryScreen extends StatelessWidget {
           onTap: () {
                 // TODO: 해당 경로를 선택하여 경로 상세 화면으로 이동하는 로직
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${route.route} 경로를 다시 검색합니다.')),
+                  SnackBar(content: Text('${route.route} 경로를 검색합니다.')),
                 );
               },
             ),

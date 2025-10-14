@@ -188,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
-                  context.go('/search');
+                  context.go('/history');
                 },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(

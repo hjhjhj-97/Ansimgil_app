@@ -1,25 +1,38 @@
+import 'package:ansimgil_app/data/database_helper.dart';
+import 'package:ansimgil_app/data/favorite.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class FavoriteItem {
-  final String title;
-  final String subtitle;
-  final bool isRoute;
-
-  const FavoriteItem(this.title, this.isRoute, this.subtitle);
-}
-
-class FavoritesScreen extends StatelessWidget {
+class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
+  @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
 
-  final List<FavoriteItem> _favorites = const [
-    FavoriteItem('자주 가는 복지관', false, '서울특별시 강남구 삼성로'),
-    FavoriteItem('집 → 회사 경로', true, 'XX아파트 → 시청'),
-    FavoriteItem('주요 병원', false, '강서구 마곡동 OO병원'),
-    FavoriteItem('집 → 복지관', true, 'OO아파트 → XX복지관'),
-    FavoriteItem('OO 공원 정류장', false, '공원 앞 버스 정류장'),
-  ];
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  late Future<List<Favorite>> _favoritesFuture;
+  @override
+  void initState(){
+    super.initState();
+    _loadFavorites();
+  }
+
+  void _loadFavorites() {
+    setState(() {
+      _favoritesFuture = DatabaseHelper.instance.getAllFavorites();
+    });
+  }
+
+  void _deleteFavorite(int id, String title) async {
+    await DatabaseHelper.instance.deleteFavorite(id);
+    _loadFavorites();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('"$title" 즐겨찾기를 삭제했습니다.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,45 +49,52 @@ class FavoritesScreen extends StatelessWidget {
           onPressed: () => context.go('/home'),
         ),
       ),
-
-      body: ListView.builder(
-        itemCount: _favorites.length,
-        itemBuilder: (context, index) {
-          final item = _favorites[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-            child: Card(
-              elevation: 1,
-              child: ListTile(
-                leading: Icon(
-                  item.isRoute ? Icons.near_me : Icons.location_on,
-                  color: currentPrimaryColor,
+      body: FutureBuilder<List<Favorite>>(
+        future: _favoritesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('저장된 즐겨찾기가 없습니다.'));
+          }
+          final favorites = snapshot.data!;
+          return ListView.builder(
+            itemCount: favorites.length,
+            itemBuilder: (context, index) {
+              final item = favorites[index];
+              final String title = item.isRoute? '${item.startName} → ${item.endName ?? '도착지 없음'}' : item.startName;
+              final String subtitle = item.isRoute ? '저장된 경로' : '저장된 장소';
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: Card(
+                  elevation: 1,
+                  child: ListTile(
+                    leading: Icon(
+                      item.isRoute ? Icons.near_me : Icons.location_on,
+                      color: currentPrimaryColor,
+                    ),
+                    title: Text(title, style: listTitleStyle),
+                    subtitle: Text(subtitle),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.redAccent),
+                      onPressed: () {
+                        _deleteFavorite(item.id!, item.startName);
+                      },
+                    ),
+                    onTap: () {
+                      // TODO: 해당 경로/장소를 선택하여 경로 탐색 화면으로 자동 입력/이동
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('"${item.startName}" 경로 탐색을 시작합니다.')),
+                      );
+                    },
+                  ),
                 ),
-                title: Text(
-                  item.title,
-                  style: listTitleStyle,
-                ),
-                subtitle: Text(
-                  item.subtitle,
-                  style: listTitleStyle,
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.redAccent),
-                  onPressed: () {
-                    // TODO: 즐겨찾기 삭제 로직 (실제 DB에서 삭제)
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('"${item.title}" 즐겨찾기를 삭제합니다.')),
-                    );
-                  },
-                ),
-                onTap: () {
-                  // TODO: 해당 경로/장소를 선택하여 경로 탐색 화면으로 자동 입력/이동
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('"${item.title}" 경로 탐색을 시작합니다.')),
-                  );
-                },
-              ),
-            ),
+              );
+            },
           );
         },
       ),

@@ -1,9 +1,11 @@
+import 'package:ansimgil_app/data/database_helper.dart';
+import 'package:ansimgil_app/data/favorite.dart';
 import 'package:ansimgil_app/screen/add_contact_screen.dart';
 import 'package:ansimgil_app/screen/emergencyContanctsScreen.dart';
 import 'package:ansimgil_app/screen/favoriteScreen.dart';
 import 'package:ansimgil_app/screen/guidanceStartScreen.dart';
 import 'package:ansimgil_app/screen/homeScreen.dart';
-import 'package:ansimgil_app/screen/recentHistoryScreen.dart';
+import 'package:ansimgil_app/screen/searchHistoryScreen.dart';
 import 'package:ansimgil_app/screen/routeDetailScreen.dart';
 import 'package:ansimgil_app/screen/settingScreen.dart';
 import 'package:ansimgil_app/utils/theme_manager.dart';
@@ -37,7 +39,7 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/history',
       builder: (BuildContext context, GoRouterState state) {
-        return RecentHistoryScreen();
+        return SearchHistoryScreen();
       },
     ),
     GoRoute(
@@ -70,14 +72,12 @@ final GoRouter _router = GoRouter(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-
   await FlutterNaverMap().init(
     clientId: dotenv.env['NAVER_MAP_CLIENT_ID'],
     onAuthFailed: (e) {
       print('네이버맵 인증 실패: $e');
     }
   );
-
   runApp(ChangeNotifierProvider(
       create: (context) => ThemeManager(),
       child: const AnsimGilApp()

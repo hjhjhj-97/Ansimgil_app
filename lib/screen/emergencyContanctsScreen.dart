@@ -244,7 +244,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if(_currentPrimaryContactId == contact.id)
-                          Icon(Icons.star, color: theme.primaryColor),
+                          Semantics(
+                              label: '주 연락처',
+                              child: Icon(Icons.star, color: theme.primaryColor),
+                          ),
                         if(_currentPrimaryContactId == contact.id)
                           const SizedBox(width: 8),
                         IconButton(
@@ -270,6 +273,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
           await context.push('/add_contacts');
           _loadContacts();
         },
+        tooltip: '새 비상 연착거 추가',
         backgroundColor: theme.primaryColor,
         foregroundColor: theme.primaryColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
         child: Icon(Icons.person_add),

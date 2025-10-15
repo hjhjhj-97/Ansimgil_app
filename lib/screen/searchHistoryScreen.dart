@@ -105,9 +105,11 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
                 elevation: theme.cardTheme.elevation,
                 margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: ListTile(
-                  leading: Icon(
-                    history.isRoute ? Icons.near_me : Icons.location_on,
-                    color: theme.listTileTheme.iconColor,
+                  leading: ExcludeSemantics(
+                    child: Icon(
+                      history.isRoute ? Icons.near_me : Icons.location_on,
+                      color: theme.listTileTheme.iconColor,
+                    ),
                   ),
                   title: Text(
                       title,
@@ -117,7 +119,9 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
                     '검색 시각: ${_formatDate(history.createdAt)}',
                     style: theme.textTheme.bodyMedium,
                   ),
-              trailing: Icon(Icons.redo,color: theme.listTileTheme.iconColor,),
+              trailing: ExcludeSemantics(
+                  child: Icon(Icons.redo,color: theme.listTileTheme.iconColor,),
+              ),
               onTap: () {
                     final history = _searchHistoryList[index];
                     context.push('/search', extra: history);

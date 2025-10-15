@@ -159,7 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.mic, color:theme.primaryColor,),
+                  Semantics(
+                      label:'음성 검색',
+                      child: Icon(Icons.mic, color:theme.primaryColor,),
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: TextField(

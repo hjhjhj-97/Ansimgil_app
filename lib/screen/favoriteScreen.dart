@@ -111,14 +111,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 child: Card(
                   elevation: 1,
                   child: ListTile(
-                    leading: Icon(
-                      item.isRoute ? Icons.near_me : Icons.location_on,
-                      color: currentPrimaryColor,
+                    leading: ExcludeSemantics(
+                      child: Icon(
+                        item.isRoute ? Icons.near_me : Icons.location_on,
+                        color: currentPrimaryColor,
+                      ),
                     ),
                     title: Text(title, style: listTitleStyle),
                     subtitle: Text(subtitle),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.redAccent),
+                      icon: Icon(Icons.delete, color: Colors.redAccent),
+                      tooltip: '"${title} 즐겨찾기 삭제',
                       onPressed: () {
                         _deleteFavorite(item.id!, item.startName);
                       },

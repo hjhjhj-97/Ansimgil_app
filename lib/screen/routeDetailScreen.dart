@@ -103,12 +103,15 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
           },
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              _isFavorite ? Icons.star : Icons.star_border,
-              color: _isFavorite ? Colors.yellowAccent : currentAppbarFgColor,
+          Semantics(
+            label: _isFavorite ? '즐겨찾기에서 삭제' : '즐겨찾기에 추가',
+            child: IconButton(
+              icon: Icon(
+                _isFavorite ? Icons.star : Icons.star_border,
+                color: _isFavorite ? Colors.yellowAccent : currentAppbarFgColor,
+              ),
+              onPressed: _toggleFavorite,
             ),
-            onPressed: _toggleFavorite,
           ),
           const SizedBox(width: 8),
         ],

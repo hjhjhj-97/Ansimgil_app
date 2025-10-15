@@ -43,6 +43,7 @@ dependencies:
   flutter_naver_map: ^1.4.1+1
   geolocator: ^14.0.2
   flutter_dotenv: ^6.0.0
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,6 @@
+import 'package:ansimgil_app/data/database_helper.dart';
+import 'package:ansimgil_app/data/search_history.dart';
+import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,19 +12,31 @@ class RecentRoute {
   const RecentRoute(this.route, this.date, this.isRoute);
 }
 
-class SearchHistoryScreen extends StatelessWidget {
+class SearchHistoryScreen extends StatefulWidget {
   SearchHistoryScreen({super.key});
 
-  final List<RecentRoute> _recentRoutes = [
-    RecentRoute('XX아파트 → 서울역', DateTime(2025, 9, 30, 9, 05), true),
-    RecentRoute('OO아파트 정류장', DateTime(2025, 9, 30, 8, 45), false),
-    RecentRoute('시청 → 롯데백화점 본점', DateTime(2025, 9, 29, 17, 30), true),
-    RecentRoute('강남역 (신분당선)', DateTime(2025, 9, 29, 17, 00), false),
-    RecentRoute('집 → OO공원', DateTime(2025, 9, 28, 14, 05), true),
-    RecentRoute('XX복지관 → 집', DateTime(2025, 9, 27, 18, 55), true),
-    RecentRoute('OO도서관', DateTime(2025, 9, 27, 10, 15), false),
-    RecentRoute('현 위치 → 김포공항', DateTime(2025, 9, 26, 7, 00), true),
-  ];
+  @override
+  State<SearchHistoryScreen> createState() => _SearchHistoryScreenState();
+}
+
+class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
+  List<SearchHistory> _searchHistoryList =[];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSearchHistory();
+  }
+
+  Future<void> _loadSearchHistory() async {
+    final data = await DatabaseHelper.instance.getAllSearchHistorise();
+    data.sort((a,b) => b.createdAt.compareTo(a.createdAt));
+    setState(() {
+      _searchHistoryList = data;
+      _isLoading = false;
+    });
+  }
 
   String _formatDate(DateTime date) {
     return '${date.month}/${date.day} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
@@ -32,46 +47,86 @@ class SearchHistoryScreen extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('최근 검색기록',style: TextStyle(fontWeight: FontWeight.bold),),
+        title: Text('검색기록',style: TextStyle(fontWeight: FontWeight.bold),),
         leading: IconButton(
           icon:  Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
         ),
       ),
-
-      body: ListView.builder(
-        itemCount: _recentRoutes.length,
-        itemBuilder: (context, index) {
-          final route = _recentRoutes[index];
-          return Card(
-            color: theme.cardTheme.color,
-            shape: theme.cardTheme.shape,
-            elevation: theme.cardTheme.elevation,
-            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-            child: ListTile(
-              leading: Icon(
-                route.isRoute ? Icons.near_me : Icons.location_on,
-                color: theme.listTileTheme.iconColor,
+      endDrawer: Drawer(
+        child: Container(
+          color: theme.appBarTheme.backgroundColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(color: theme.appBarTheme.backgroundColor),
+                child: Text(
+                    '안심길 메뉴',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.appBarTheme.foregroundColor,
+                      fontWeight: FontWeight.bold,
+                    )
+                ),
               ),
-              title: Text(
-                route.route,
-                style: theme.textTheme.titleMedium,
+              CustomDrawerItem(
+                icon: Icons.sos,
+                title: '비상 연락처 등록',
+                onTap: () {
+                  context.pop();
+                  context.go('/emergency_contacts');
+                },
               ),
-              subtitle: Text(
-                '검색 시각: ${_formatDate(route.date)}',
-                style: theme.textTheme.bodyMedium,
+              CustomDrawerItem(
+                icon: Icons.settings,
+                title: '환경설정',
+                onTap: () {
+                  context.pop();
+                  context.go('/settings');
+                },
               ),
-          trailing: Icon(Icons.redo,color: theme.listTileTheme.iconColor,),
-          onTap: () {
-                // TODO: 해당 경로를 선택하여 경로 상세 화면으로 이동하는 로직
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${route.route} 경로를 검색합니다.')),
-                );
-              },
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
+
+      body: _isLoading
+        ? const Center(child: CircularProgressIndicator(),)
+        : _searchHistoryList.isEmpty
+          ? const Center(child: Text('최근 검색 기록이 없습니다.'),)
+          :ListView.builder(
+            itemCount: _searchHistoryList.length,
+            itemBuilder: (context, index) {
+              final history = _searchHistoryList[index];
+              final title = history.isRoute ? '${history.startName} → ${history.endName}' : history.startName;
+              return Card(
+                color: theme.cardTheme.color,
+                shape: theme.cardTheme.shape,
+                elevation: theme.cardTheme.elevation,
+                margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: ListTile(
+                  leading: Icon(
+                    history.isRoute ? Icons.near_me : Icons.location_on,
+                    color: theme.listTileTheme.iconColor,
+                  ),
+                  title: Text(
+                      title,
+                      style: theme.textTheme.titleMedium,
+                  ),
+                  subtitle: Text(
+                    '검색 시각: ${_formatDate(history.createdAt)}',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+              trailing: Icon(Icons.redo,color: theme.listTileTheme.iconColor,),
+              onTap: () {
+                    final history = _searchHistoryList[index];
+                    context.push('/search', extra: history);
+                    // TODO: 해당 경로를 선택하여 경로 상세 화면으로 이동하는 로직
+                  },
+                ),
+              );
+            },
+          ),
     );
   }
 }

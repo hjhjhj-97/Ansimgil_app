@@ -1,5 +1,6 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/favorite.dart';
+import 'package:ansimgil_app/data/search_history.dart';
 import 'package:ansimgil_app/screen/add_contact_screen.dart';
 import 'package:ansimgil_app/screen/emergencyContanctsScreen.dart';
 import 'package:ansimgil_app/screen/favoriteScreen.dart';
@@ -27,7 +28,18 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/search',
       builder: (BuildContext context, GoRouterState state) {
-        return const RouteDetailScreen();
+        final history = state.extra;
+        if (history is SearchHistory){
+          return RouteDetailScreen(history: history,);
+        } else {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(
+              child: Text('오류" 경로 정보를 불러올 수 없습니다.'),
+            ),
+          );
+        }
+
       },
     ),
     GoRoute(

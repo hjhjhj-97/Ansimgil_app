@@ -1,8 +1,12 @@
+import 'package:ansimgil_app/data/database_helper.dart';
+import 'package:ansimgil_app/data/favorite.dart';
+import 'package:ansimgil_app/data/search_history.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class RouteDetailScreen extends StatefulWidget {
-  const RouteDetailScreen({super.key});
+  final SearchHistory history;
+  const RouteDetailScreen({super.key, required this.history});
 
   @override
   State<RouteDetailScreen> createState() => _RouteDetailScreenState();
@@ -10,25 +14,76 @@ class RouteDetailScreen extends StatefulWidget {
 
 class _RouteDetailScreenState extends State<RouteDetailScreen> {
   bool _isFavorite = false;
-
-  void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-
-    String message;
-    if (_isFavorite) {
-      message = '경로가 즐겨찾기에 추가되었습니다!';
-    } else {
-      message = '경로가 즐겨찾기에서 제거되었습니다.';
+  int? _favoriteId;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+  }
+  
+  Future<void> _loadFavoriteStatus() async {
+    final dbHelper = await DatabaseHelper.instance;
+    final allFavorites = await dbHelper.getAllFavorites();
+    try{
+      final favorite = allFavorites.firstWhere(
+          (fav) =>
+              fav.startName == widget.history.startName &&
+              fav.endName == widget.history.endName,
+      );
+      setState(() {
+        _isFavorite = true;
+        _favoriteId = favorite.id;
+      });
+    } catch (e) {
+      setState(() {
+        _isFavorite = false;
+        _favoriteId = null;
+      });
     }
+  }
+  
+  Future<void> _toggleFavorite() async {
+    final dbHelper = await DatabaseHelper.instance;
+    if(_isFavorite) {
+      if(_favoriteId != null) {
+        await dbHelper.deleteFavorite(_favoriteId!);
+        setState(() {
+          _isFavorite = false;
+          _favoriteId = null;
+        });
+        _showSnackBar('경로가 즐겨찾기에서 삭제되었습니다.');
+      }
+    } else {
+      final newFavorite = Favorite(
+        startName: widget.history.startName,
+        startLatitude: widget.history.startLatitude,
+        startLongitude: widget.history.startLongitude,
+        endName: widget.history.endName,
+        endLatitude: widget.history.endLatitude,
+        endLongitude: widget.history.endLongitude,
+        isRoute: widget.history.isRoute,
+        createdAt: DateTime.now(),
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+      final newId = await dbHelper.insertFavorite(newFavorite);
+      setState(() {
+        _isFavorite = true;
+        _favoriteId = newId;
+      });
+      _showSnackBar('경로가 즐겨찾기에 추가되었습니다.');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override
@@ -44,7 +99,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
         leading: IconButton(
           icon:  Icon(Icons.arrow_back,),
           onPressed: () {
-            context.go('/home');
+            context.pop();
           },
         ),
         actions: [
@@ -53,7 +108,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
               _isFavorite ? Icons.star : Icons.star_border,
               color: _isFavorite ? Colors.yellowAccent : currentAppbarFgColor,
             ),
-            onPressed: _toggleFavorite, // 상태 토글 함수 연결
+            onPressed: _toggleFavorite,
           ),
           const SizedBox(width: 8),
         ],
@@ -64,11 +119,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '출발지: 현 위치 (OOOO대학교)',
+              '출발지: ${widget.history.startName}',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              '목적지: 서울역 1호선 (지하철)',
+              '목적지: ${widget.history.endName}',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),

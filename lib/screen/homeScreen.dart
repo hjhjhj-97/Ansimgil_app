@@ -1,7 +1,10 @@
+import 'package:ansimgil_app/data/database_helper.dart';
+import 'package:ansimgil_app/data/search_history.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _destinationController = TextEditingController();
   NCameraPosition _initialCameraPosition = const NCameraPosition(
     target: NLatLng(37.5665, 126.9780),
     zoom: 15,
@@ -22,6 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _getCurrentLocationAndSetMap();
+  }
+
+  @override
+  void dispose() {
+    _destinationController.dispose();
+    super.dispose();
   }
 
   Future<void> _getCurrentLocationAndSetMap() async {
@@ -95,8 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 ),
               ),
-              _buildDrawerItem(
-                context,
+              CustomDrawerItem(
                 icon: Icons.sos,
                 title: '비상 연락처 등록',
                 onTap: () {
@@ -104,8 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   context.go('/emergency_contacts');
                 },
               ),
-              _buildDrawerItem(
-                context,
+              CustomDrawerItem(
                 icon: Icons.settings,
                 title: '환경설정',
                 onTap: () {
@@ -143,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.shadowColor.withOpacity(0.1),
+                    color: theme.shadowColor.withValues(alpha: 0.1),
                     blurRadius: 4.0,
                     offset: Offset(0, 2),
                   ),
@@ -155,6 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(width: 10),
                   Expanded(
                     child: TextField(
+                      controller: _destinationController,
                       decoration: InputDecoration(
                         hintText: '음성 검색 또는 입력해주세요.',
                         hintStyle: theme.inputDecorationTheme.hintStyle,
@@ -187,8 +196,25 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: () {
-                  context.go('/history');
+                onPressed: () async {
+                  if (_destinationController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("목적지를 입력해주세요.")),
+                    );
+                    return;
+                  }
+                  final newSearch = SearchHistory(
+                      startName: '현위치',
+                      startLatitude: _initialCameraPosition.target.latitude,
+                      startLongitude: _initialCameraPosition.target.longitude,
+                      endName: _destinationController.text,
+                      isRoute: true,
+                      createdAt: DateTime.now(),
+                  );
+                  await DatabaseHelper.instance.addOrUpdateSearchHistory(newSearch);
+                  if (mounted) {
+                    context.go('/history');
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
@@ -227,17 +253,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDrawerItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
-    final theme = Theme.of(context);
-    final color = theme.appBarTheme.foregroundColor;
-
-    return ListTile(
-      leading: Icon(icon, color: color?.withOpacity(0.7)),
-      title: Text(
-        title,
-        style: TextStyle(color: color,),
-      ),
-      onTap: onTap,
-    );
-  }
 }

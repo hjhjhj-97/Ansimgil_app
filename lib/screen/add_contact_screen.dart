@@ -116,7 +116,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
                 ),
                 subtitle: Text(
                     '이 연락처를 주 보호자로 지정합니다.',
-                    style: TextStyle(color: primaryTextColor?.withOpacity(0.85)),
+                    style: TextStyle(color: primaryTextColor?.withValues(alpha: 0.85)),
                 ),
                 value: _isPrimary,
                 onChanged: (bool value) {

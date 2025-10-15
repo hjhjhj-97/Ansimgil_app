@@ -1,4 +1,5 @@
 import 'package:ansimgil_app/utils/theme_manager.dart';
+import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -86,6 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final themeManager = context.watch<ThemeManager>();
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final String currentFontSize = themeManager.fontSize;
@@ -96,6 +98,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
+        ),
+      ),
+      endDrawer: Drawer(
+        child: Container(
+          color: theme.appBarTheme.backgroundColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(color: theme.appBarTheme.backgroundColor),
+                child: Text(
+                    '안심길 메뉴',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.appBarTheme.foregroundColor,
+                      fontWeight: FontWeight.bold,
+                    )
+                ),
+              ),
+              CustomDrawerItem(
+                icon: Icons.sos,
+                title: '비상 연락처 등록',
+                onTap: () {
+                  context.pop();
+                  context.go('/emergency_contacts');
+                },
+              ),
+              CustomDrawerItem(
+                icon: Icons.settings,
+                title: '환경설정',
+                onTap: () {
+                  context.pop();
+                  context.go('/settings');
+                },
+              ),
+            ],
+          ),
         ),
       ),
       body: ListView(
@@ -170,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
                   },
                   activeColor: _isVibrationOn ? currentPrimaryColor : Colors.grey,
-                  inactiveColor: _isVibrationOn ? currentPrimaryColor.withOpacity(0.3) : Colors.grey[300],
+                  inactiveColor: _isVibrationOn ? currentPrimaryColor.withValues(alpha: 0.3) : Colors.grey[300],
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5.0),

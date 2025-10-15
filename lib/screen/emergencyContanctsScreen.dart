@@ -1,5 +1,6 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/emergency_contact.dart';
+import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -172,6 +173,42 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
           onPressed: () => context.go('/home'),
         ),
       ),
+      endDrawer: Drawer(
+        child: Container(
+          color: theme.appBarTheme.backgroundColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(color: theme.appBarTheme.backgroundColor),
+                child: Text(
+                    '안심길 메뉴',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.appBarTheme.foregroundColor,
+                      fontWeight: FontWeight.bold,
+                    )
+                ),
+              ),
+              CustomDrawerItem(
+                icon: Icons.sos,
+                title: '비상 연락처 등록',
+                onTap: () {
+                  context.pop();
+                  context.go('/emergency_contacts');
+                },
+              ),
+              CustomDrawerItem(
+                icon: Icons.settings,
+                title: '환경설정',
+                onTap: () {
+                  context.pop();
+                  context.go('/settings');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _contacts.isEmpty
@@ -198,7 +235,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                     ),
                     subtitle: Text(
                         contact.phoneNumber,
-                        style: TextStyle(color: primaryTextColor?.withOpacity(0.85)),
+                        style: TextStyle(color: primaryTextColor?.withValues(alpha: 0.85)),
                     ),
                     value: contact.id!,
                     groupValue: _currentPrimaryContactId,

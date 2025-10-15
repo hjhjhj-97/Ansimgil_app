@@ -1,5 +1,6 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/favorite.dart';
+import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,6 +37,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final TextStyle listTitleStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
       fontWeight: FontWeight.bold,
@@ -47,6 +49,42 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back,),
           onPressed: () => context.go('/home'),
+        ),
+      ),
+      endDrawer: Drawer(
+        child: Container(
+          color: theme.appBarTheme.backgroundColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(color: theme.appBarTheme.backgroundColor),
+                child: Text(
+                    '안심길 메뉴',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.appBarTheme.foregroundColor,
+                      fontWeight: FontWeight.bold,
+                    )
+                ),
+              ),
+              CustomDrawerItem(
+                icon: Icons.sos,
+                title: '비상 연락처 등록',
+                onTap: () {
+                  context.pop();
+                  context.go('/emergency_contacts');
+                },
+              ),
+              CustomDrawerItem(
+                icon: Icons.settings,
+                title: '환경설정',
+                onTap: () {
+                  context.pop();
+                  context.go('/settings');
+                },
+              ),
+            ],
+          ),
         ),
       ),
       body: FutureBuilder<List<Favorite>>(

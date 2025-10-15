@@ -226,6 +226,28 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> addOrUpdateSearchHistory(SearchHistory search) async {
+    Database db = await instance.database;
+    List<Map<String,dynamic>> maps = await db.query(
+        'search_history',
+        where: 'start_name = ? AND end_name = ?',
+        whereArgs: [search.startName, search.endName],
+    );
+    if (maps.isNotEmpty) {
+      int existingId = maps.first['id'];
+      await db.update(
+          'search_history',
+          {'created_at': DateTime.now().toIso8601String()},
+          where: 'id=?',
+          whereArgs: [existingId],
+      );
+      print('기존 검색 기록 시간 업데이트 ID: ${existingId}');
+    } else {
+      int newId = await db.insert('search_history', search.toMap());
+      print('새로운 검색 기록 저장 ID: ${newId}');
+    }
+  }
+
   Future<int> deleteSearchHistory(int id) async {
     Database db = await instance.database;
     return await db.delete(

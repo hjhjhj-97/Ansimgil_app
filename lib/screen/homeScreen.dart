@@ -1,5 +1,6 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/search_history.dart';
+import 'package:ansimgil_app/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,8 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
     target: NLatLng(37.5665, 126.9780),
     zoom: 15,
   );
-
   bool _isLoadingLocation = true;
+  String _currentAddress = '현재 위치 주소 찾는 중...';
 
   @override
   void initState() {
@@ -39,32 +40,50 @@ class _HomeScreenState extends State<HomeScreen> {
     LocationPermission permission;
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      setState(() { _isLoadingLocation = false; });
-      return Future.error('위치 서비스가 비활성화되어 있습니다.');
+      if(mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+          _currentAddress = '위치 서비스 비활성화';
+        });
+      }
+      return;
     }
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        setState(() { _isLoadingLocation = false; });
-        return Future.error('위치 권한이 거부되었습니다.');
-      }
+     if(mounted) {
+       setState(() {
+         _isLoadingLocation = false;
+         _currentAddress = '위치 권한 거부됨';
+       });
+     }
+     return;
     }
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
+        desiredAccuracy: LocationAccuracy.best
       );
+      print('--- 현재 위치 GPS 값 ---');
+      print('위도 (Latitude): ${position.latitude}');
+      print('경도 (Longitude): ${position.longitude}');
+      print('정확도 (Accuracy): ${position.accuracy}m');
+      print('-----------------------');
+      final apiService = ApiService();
+      final addressText = await apiService.getAddressFromCoordinates(position.latitude, position.longitude);
       setState(() {
         _initialCameraPosition = NCameraPosition(
           target: NLatLng(position.latitude, position.longitude),
           zoom: 16,
         );
         _isLoadingLocation = false;
+        _currentAddress = addressText ?? '주소를 찾을 수 없습니다.';
       });
     } catch (e) {
       print("위치 가져오기 오류: $e");
-      setState(() { _isLoadingLocation = false; });
+      setState(() {
+        _isLoadingLocation = false;
+        _currentAddress = '위치 권한 또는 네트워크 오류';
+      });
     }
   }
 
@@ -130,7 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
           '안심길',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
           ),
         ),
         centerTitle: true,
@@ -141,6 +159,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: <Widget>[
+            Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  '현재 위치:  ${_currentAddress}',
+                  style: theme.textTheme.bodyMedium,
+                ),
+            ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
               decoration: BoxDecoration(
@@ -200,23 +225,93 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 60,
               child: ElevatedButton(
                 onPressed: () async {
-                  if (_destinationController.text.isEmpty) {
+                  final destinationName = _destinationController.text;
+                  print(destinationName);
+                  if (destinationName.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("목적지를 입력해주세요.")),
                     );
                     return;
                   }
+                  if (mounted) {
+                    setState(() { _isLoadingLocation = true; });
+                  }
+                  final apiService = ApiService();
+                  final startAddress = _currentAddress;
+                  final startLat = _initialCameraPosition.target.latitude;
+                  final startLon = _initialCameraPosition.target.longitude;
+                  if (startAddress.contains('찾을 수 없음') || startAddress.contains('거부됨')) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("출발지 주소가 불명확합니다. 잠시 후 다시 시도해 주세요.")),
+                      );
+                      setState(() { _isLoadingLocation = false; });
+                    }
+                    return;
+                  }
+                  final destinationCords = await apiService.getCoordinatesFromAddress(destinationName);
+                  if (destinationCords == null) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("목적지 주소를 찾을 수 없습니다.")),
+                      );
+                      setState(() { _isLoadingLocation = false; });
+                    }
+                    return;
+                  }
+                  final endLat = destinationCords['latitude']!;
+                  final endLon = destinationCords['longitude']!;
+                  final routeOptions = await apiService.getRouteAnalysis(
+                    startAddress: startAddress,
+                    endAddress: destinationName,
+                  );
+
+                  if (routeOptions != null && routeOptions.isNotEmpty) {
+                    print('-----------------------------------------');
+                    print('✅ 경로 분석 데이터 수신 성공!');
+                    print('총 ${routeOptions.length} 개의 경로 옵션이 있습니다.');
+                    final firstOption = routeOptions.first;
+                    print('1순위 경로 총 시간: ${firstOption.totalTime} 분');
+                    print('1순위 경로 총 거리: ${firstOption.totalDistance} 미터');
+                    print('1순위 경로 총 비용: ${firstOption.totalFare} 원');
+                    print('환승 횟수: ${firstOption.transferCount} 회');
+                    print('\n--- 경로 세부 단계 ---');
+                    for (var segment in firstOption.pathSegments) {
+                      print('  - 유형: ${segment.type}');
+                      print('  - 설명: ${segment.description}');
+                      print('  - 소요 시간: ${segment.sectionTime} 분');
+                    }
+                    print('-----------------------------------------');
+                  }
+
+                  if (routeOptions == null || routeOptions.isEmpty) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("경로 정보를 찾을 수 없습니다.")),
+                      );
+                      setState(() { _isLoadingLocation = false; });
+                    }
+                    return;
+                  }
                   final newSearch = SearchHistory(
-                      startName: '현위치',
-                      startLatitude: _initialCameraPosition.target.latitude,
-                      startLongitude: _initialCameraPosition.target.longitude,
-                      endName: _destinationController.text,
-                      isRoute: true,
-                      createdAt: DateTime.now(),
+                    startName: startAddress,
+                    startLatitude: startLat,
+                    startLongitude: startLon,
+                    endName: destinationName,
+                    endLatitude: endLat,
+                    endLongitude: endLon,
+                    createdAt: DateTime.now(),
                   );
                   await DatabaseHelper.instance.addOrUpdateSearchHistory(newSearch);
                   if (mounted) {
-                    context.go('/history');
+                    setState(() {
+                      _isLoadingLocation = false;
+                    });
+                    context.push('/route_detail',
+                        extra: {
+                          'option' : routeOptions.first,
+                          'history': newSearch,
+                        });
                   }
                 },
                 style: ElevatedButton.styleFrom(

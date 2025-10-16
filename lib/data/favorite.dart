@@ -6,7 +6,6 @@ class Favorite {
   final String? endName;
   final double? endLatitude;
   final double? endLongitude;
-  final bool isRoute;
   final DateTime createdAt;
 
   Favorite({
@@ -17,7 +16,6 @@ class Favorite {
     this.endName,
     this.endLatitude,
     this.endLongitude,
-    this.isRoute = false, // 0
     required this.createdAt,
   });
 
@@ -30,7 +28,6 @@ class Favorite {
       'end_name': endName,
       'end_latitude': endLatitude,
       'end_longitude': endLongitude,
-      'is_route' : isRoute ? 1 : 0,
       'created_at' : createdAt.toIso8601String(),
     };
   }
@@ -44,7 +41,6 @@ class Favorite {
       endName: map['end_name'],
       endLatitude: map['end_latitude'],
       endLongitude: map['end_longitude'],
-      isRoute: map['is_route'] == 1,
       createdAt: DateTime.parse(map['created_at'])
     );
   }

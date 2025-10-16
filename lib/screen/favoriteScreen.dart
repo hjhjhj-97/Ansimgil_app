@@ -104,8 +104,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             itemCount: favorites.length,
             itemBuilder: (context, index) {
               final item = favorites[index];
-              final String title = item.isRoute? '${item.startName} → ${item.endName ?? '도착지 없음'}' : item.startName;
-              final String subtitle = item.isRoute ? '저장된 경로' : '저장된 장소';
+              final String title = '${item.startName} → ${item.endName ?? '도착지 없음'}';
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                 child: Card(
@@ -113,12 +112,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   child: ListTile(
                     leading: ExcludeSemantics(
                       child: Icon(
-                        item.isRoute ? Icons.near_me : Icons.location_on,
+                        Icons.location_on,
                         color: currentPrimaryColor,
                       ),
                     ),
                     title: Text(title, style: listTitleStyle),
-                    subtitle: Text(subtitle),
                     trailing: IconButton(
                       icon: Icon(Icons.delete, color: Colors.redAccent),
                       tooltip: '"${title} 즐겨찾기 삭제',

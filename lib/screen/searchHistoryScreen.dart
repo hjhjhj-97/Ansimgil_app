@@ -98,7 +98,7 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
             itemCount: _searchHistoryList.length,
             itemBuilder: (context, index) {
               final history = _searchHistoryList[index];
-              final title = history.isRoute ? '${history.startName} → ${history.endName}' : history.startName;
+              final title = '${history.startName} → ${history.endName}';
               return Card(
                 color: theme.cardTheme.color,
                 shape: theme.cardTheme.shape,
@@ -107,7 +107,7 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
                 child: ListTile(
                   leading: ExcludeSemantics(
                     child: Icon(
-                      history.isRoute ? Icons.near_me : Icons.location_on,
+                      Icons.location_on,
                       color: theme.listTileTheme.iconColor,
                     ),
                   ),

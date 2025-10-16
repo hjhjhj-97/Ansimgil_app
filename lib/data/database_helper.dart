@@ -43,10 +43,9 @@ class DatabaseHelper {
       "start_name"	TEXT NOT NULL,
       "start_latitude"	REAL NOT NULL,
       "start_longitude"	REAL NOT NULL,
-      "end_name"	TEXT,
-      "end_latitude"	REAL,
-      "end_longitude"	REAL,
-      "is_route"	INTEGER NOT NULL DEFAULT 0,
+      "end_name"	TEXT NOT NULL,
+      "end_latitude"	REAL NOT NULL,
+      "end_longitude"	REAL NOT NULL,
       "created_at"	TEXT,
       PRIMARY KEY("id" AUTOINCREMENT)
     )
@@ -58,10 +57,9 @@ class DatabaseHelper {
       "start_name"	TEXT NOT NULL,
       "start_latitude"	REAL NOT NULL,
       "start_longitude"	REAL NOT NULL,
-      "end_name"	TEXT,
-      "end_latitude"	REAL,
-      "end_longitude"	REAL,
-      "is_route"	INTEGER NOT NULL DEFAULT 0,
+      "end_name"	TEXT NOT NULL,
+      "end_latitude"	REAL NOT NULL,
+      "end_longitude"	REAL NOT NULL,
       "created_at"	TEXT,
       PRIMARY KEY("id" AUTOINCREMENT)
     )

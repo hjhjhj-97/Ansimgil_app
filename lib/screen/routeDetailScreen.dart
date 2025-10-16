@@ -1,12 +1,14 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/favorite.dart';
 import 'package:ansimgil_app/data/search_history.dart';
+import 'package:ansimgil_app/models/route_analysis_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class RouteDetailScreen extends StatefulWidget {
-  final SearchHistory history;
-  const RouteDetailScreen({super.key, required this.history});
+  final RouteOption routeOption;
+  final SearchHistory searchHistory;
+  const RouteDetailScreen({super.key, required this.searchHistory, required this.routeOption});
 
   @override
   State<RouteDetailScreen> createState() => _RouteDetailScreenState();
@@ -19,7 +21,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
   @override
   void initState() {
     super.initState();
-    
+    _loadFavoriteStatus();
   }
   
   Future<void> _loadFavoriteStatus() async {
@@ -28,8 +30,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
     try{
       final favorite = allFavorites.firstWhere(
           (fav) =>
-              fav.startName == widget.history.startName &&
-              fav.endName == widget.history.endName,
+              fav.startName == widget.searchHistory.startName &&
+              fav.endName == widget.searchHistory.endName,
       );
       setState(() {
         _isFavorite = true;
@@ -56,13 +58,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
       }
     } else {
       final newFavorite = Favorite(
-        startName: widget.history.startName,
-        startLatitude: widget.history.startLatitude,
-        startLongitude: widget.history.startLongitude,
-        endName: widget.history.endName,
-        endLatitude: widget.history.endLatitude,
-        endLongitude: widget.history.endLongitude,
-        isRoute: widget.history.isRoute,
+        startName: widget.searchHistory.startName,
+        startLatitude: widget.searchHistory.startLatitude,
+        startLongitude: widget.searchHistory.startLongitude,
+        endName: widget.searchHistory.endName,
+        endLatitude: widget.searchHistory.endLatitude,
+        endLongitude: widget.searchHistory.endLongitude,
         createdAt: DateTime.now(),
       );
 
@@ -88,6 +89,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final option = widget.routeOption;
+    final history = widget.searchHistory;
     final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final Color currentAppbarFgColor = Theme.of(context).appBarTheme.foregroundColor!;
     final TextStyle listTitleStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
@@ -121,42 +124,26 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildRouteSummary(context, option),
+            const SizedBox(height: 16,),
             Text(
-              '출발지: ${widget.history.startName}',
+              '출발지: ${history.startName}',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              '목적지: ${widget.history.endName}',
+              '목적지: ${history.endName}',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
 
             Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.directions_walk, color: currentPrimaryColor),
-                    title: Text('도보 5분', style: listTitleStyle),
-                    subtitle: Text('OOOO역 3번 출구까지 이동',style: listTitleStyle),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.subway, color: currentPrimaryColor),
-                    title: Text('지하철 1호선 (혼잡도 낮음)', style: listTitleStyle),
-                    subtitle: Text('5개 정거장 이동 (약 15분 소요)', style: listTitleStyle),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.transfer_within_a_station, color: Colors.orange),
-                    title: Text('환승 안내', style: listTitleStyle),
-                    subtitle: Text('서울역에서 4호선으로 환승', style: listTitleStyle),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.directions_walk, color: Colors.green),
-                    title: Text('목적지 도착', style: listTitleStyle),
-                    subtitle: Text('도보 안내 후 도착 확인 메시지', style: listTitleStyle),
-                  ),
-                ],
-              ),
+              child: ListView.builder(
+                  itemCount: option.pathSegments.length,
+                  itemBuilder: (context, index) {
+                    final segment = option.pathSegments[index];
+                    return _buildSegmentTile(context, segment, index, option.pathSegments.length);
+                  })
             ),
 
             SizedBox(
@@ -181,6 +168,70 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+  Widget _buildRouteSummary(BuildContext context, RouteOption option) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildSummaryItem('총 시간', '${option.totalTime}분', Colors.blue),
+            _buildSummaryItem('총 거리', '${(option.totalDistance / 1000).toStringAsFixed(1)}km', Colors.grey),
+            _buildSummaryItem('총 요금', '${option.totalFare}원', Colors.green),
+            _buildSummaryItem('환승', '${option.transferCount}회', Colors.orange),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildSummaryItem(String title, String value, Color color) {
+    return Column(
+      children: [
+        Text(title, style: TextStyle(color: Colors.grey[600])),
+        const SizedBox(height: 4),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold,)),
+      ],
+    );
+  }
+  Widget _buildSegmentTile(BuildContext context, PathSegment segment, int index, int totalCount) {
+    final bool isLast = index == totalCount - 1;
+
+    IconData icon;
+    Color color;
+
+    switch (segment.type) {
+      case '도보':
+        icon = isLast ? Icons.location_on : Icons.directions_walk;
+        color = isLast ? Colors.red : Theme.of(context).primaryColor;
+        break;
+      case '버스':
+        icon = Icons.directions_bus;
+        color = Colors.blueAccent;
+        break;
+      case '지하철':
+        icon = Icons.subway;
+        color = Colors.purple;
+        break;
+      default:
+        icon = Icons.directions;
+        color = Colors.grey;
+    }
+
+    return ListTile(
+      leading: Icon(icon, color: color,),
+      title: Text(
+        '${segment.description} (${segment.sectionTime}분 소요)',
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      subtitle: segment.busStops != null && segment.busStops!.isNotEmpty
+          ? Text(
+        '정류장: ${segment.busStops!.first.stationName} → ${segment.busStops!.last.stationName}',
+        style: Theme.of(context).textTheme.bodySmall,
+      )
+          : null,
+      trailing: Text('${segment.distance}m', style: TextStyle(color: Colors.grey)),
     );
   }
 }

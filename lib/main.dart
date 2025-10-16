@@ -1,6 +1,7 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/favorite.dart';
 import 'package:ansimgil_app/data/search_history.dart';
+import 'package:ansimgil_app/models/route_analysis_model.dart';
 import 'package:ansimgil_app/screen/add_contact_screen.dart';
 import 'package:ansimgil_app/screen/emergencyContanctsScreen.dart';
 import 'package:ansimgil_app/screen/favoriteScreen.dart';
@@ -26,20 +27,23 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
-      path: '/search',
+      path: '/route_detail',
       builder: (BuildContext context, GoRouterState state) {
-        final history = state.extra;
-        if (history is SearchHistory){
-          return RouteDetailScreen(history: history,);
+        final extraData = state.extra;
+        if (extraData is Map<String, dynamic> &&
+            extraData.containsKey('option') &&
+            extraData.containsKey('history')) {
+          final RouteOption option = extraData['option'] as RouteOption;
+          final SearchHistory history = extraData['history'] as SearchHistory;
+          return RouteDetailScreen(searchHistory: history, routeOption: option);
         } else {
           return Scaffold(
-            appBar: AppBar(),
-            body: Center(
-              child: Text('오류" 경로 정보를 불러올 수 없습니다.'),
+            appBar: AppBar(title: Text('오류 발생'),),
+            body: const Center(
+              child: Text('오류 : 경로 정보를 불러올 수 없습니다. (데이터 형식 불일치)'),
             ),
           );
         }
-
       },
     ),
     GoRoute(

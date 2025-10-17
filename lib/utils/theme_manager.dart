@@ -11,6 +11,10 @@ final TextTheme _baseTextTheme = Typography.englishLike2021.apply(
 
 final ThemeData defaultTheme = ThemeData(
   primaryColor: darkBlue,
+  colorScheme: ColorScheme.fromSeed(
+      seedColor: darkBlue,
+      brightness: Brightness.light,
+  ),
   textTheme: _baseTextTheme.apply(
     displayColor: darkBlue,
     bodyColor: Colors.black87,
@@ -47,6 +51,12 @@ final ThemeData defaultTheme = ThemeData(
 
 final ThemeData highContrastTheme = ThemeData(
   primaryColor: Colors.yellow,
+  colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.yellow,
+      brightness: Brightness.dark,
+      error: Colors.redAccent,
+      onError: Colors.black,
+  ),
   textTheme: _baseTextTheme.apply(
     displayColor: Colors.white,
     bodyColor: Colors.white,
@@ -112,6 +122,15 @@ class ThemeManager with ChangeNotifier {
     '크게': 22.0,
   };
 
+  double get iconSizeValue {
+    switch (_fontSize) {
+      case '작게': return 22.0;
+      case '보통': return 26.0;
+      case '크게': return 30.0;
+      default: return 26.0;
+    }
+  }
+
   bool get isHighContrast => _isHighContrast;
   String get fontSize => _fontSize;
   double get fontSizeValue => _fontSizeMap[_fontSize] ?? 18.0;
@@ -122,6 +141,9 @@ class ThemeManager with ChangeNotifier {
       textTheme: baseTheme.textTheme.apply(
         fontSizeFactor: fontSizeValue / 16.0,
       ),
+      iconTheme: baseTheme.iconTheme.copyWith(
+        size: iconSizeValue,
+      )
     );
   }
 

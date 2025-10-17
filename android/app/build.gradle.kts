@@ -1,3 +1,15 @@
+import java.io.File
+import java.util.Properties
+
+val envProperties = Properties()
+val envFile = File(rootProject.rootDir, ".env")
+
+if (envFile.exists()) {
+    envFile.bufferedReader().use { reader ->
+        envProperties.load(reader)
+    }
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -28,6 +40,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["NAVER_MAP_CLIENT_ID"] = envProperties.getProperty("NAVER_MAP_CLIENT_ID", "")
     }
 
     buildTypes {

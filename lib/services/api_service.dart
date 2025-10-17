@@ -34,7 +34,15 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>?> getCoordinatesFromAddress (String address) async {
-    final url = Uri.parse('$_baseUrl/api/search/local?query=$address');
+    final baseUrl = Uri.parse(_baseUrl);
+    final path = '/api/search/hybrid';
+    final queryParameters = {'query': address,};
+    final url = Uri.http(
+      baseUrl.authority,
+      path,
+      queryParameters,
+    );
+    print('백엔드 목적지 요청 URL (주소 기반): $url');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -83,6 +91,8 @@ class ApiService {
   Future<List<RouteOption>?> getRouteAnalysis({
     required String startAddress,
     required String endAddress,
+    double? endLatitude,
+    double? endLongitude,
 }) async {
 
     final baseUrl = Uri.parse(_baseUrl);
@@ -91,6 +101,10 @@ class ApiService {
       'start': startAddress,
       'end': endAddress,
     };
+    if (endLatitude != null && endLongitude != null) {
+      queryParameters['endlat'] = endLatitude.toString();
+      queryParameters['endLon'] = endLongitude.toString();
+    }
     final url = Uri.http(
       baseUrl.authority,
       path,

@@ -91,11 +91,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
   Widget build(BuildContext context) {
     final option = widget.routeOption;
     final history = widget.searchHistory;
-    final Color currentPrimaryColor = Theme.of(context).primaryColor;
     final Color currentAppbarFgColor = Theme.of(context).appBarTheme.foregroundColor!;
-    final TextStyle listTitleStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
-        fontWeight: FontWeight.bold
-    );
     return Scaffold(
       appBar: AppBar(
         title: Text('경로 상세 정보', style: TextStyle(fontWeight: FontWeight.bold),),
@@ -151,7 +147,11 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
-                  context.go('/guidance_start');
+                  context.go('/guidance_start', extra: {
+                      'option': option,
+                      'searchHistory': history,
+                    }
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(

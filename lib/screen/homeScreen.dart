@@ -50,13 +50,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-     if(mounted) {
-       setState(() {
-         _isLoadingLocation = false;
-         _currentAddress = '위치 권한 거부됨';
-       });
-     }
-     return;
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        if(mounted) {
+          setState(() {
+            _isLoadingLocation = false;
+            _currentAddress = (permission == LocationPermission.deniedForever) ? '위치 권한 영구 거부됨' : '위치 권한 거부됨';
+          });
+        }
+        return;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+          _currentAddress = '위치 권한 영구 거부됨';
+        });
+      }
+      return;
     }
 
     try {
@@ -73,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _initialCameraPosition = NCameraPosition(
           target: NLatLng(position.latitude, position.longitude),
-          zoom: 16,
+          zoom: 18,
         );
         _isLoadingLocation = false;
         _currentAddress = addressText ?? '주소를 찾을 수 없습니다.';
@@ -215,6 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       locationButtonEnable: true,
                       liteModeEnable: false,
                     ),
+                    onMapReady: (controller) {
+                      controller.setLocationTrackingMode(NLocationTrackingMode.noFollow);
+                    },
                   ),
                 ),
             ),
@@ -249,7 +264,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                     return;
                   }
-                  final destinationCords = await apiService.getCoordinatesFromAddress(destinationName);
+
+                  String finalRouteDestinationName = destinationName;
+                  String regionPrefix = '';
+                  final startAddressParts = startAddress.split(' ');
+                  if (startAddressParts.length >= 2) {
+                    regionPrefix = '${startAddressParts[0]} ${startAddressParts[1]}';
+                  }
+                  if (regionPrefix.isNotEmpty && !destinationName.contains(startAddressParts[1])) {
+                    finalRouteDestinationName = '$regionPrefix $destinationName';
+                  }
+                  print('경로 검색어 보정: $finalRouteDestinationName');
+
+                  final destinationCords = await apiService.getCoordinatesFromAddress(finalRouteDestinationName);
                   if (destinationCords == null) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -261,10 +288,41 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                   final endLat = destinationCords['latitude']!;
                   final endLon = destinationCords['longitude']!;
+
                   final routeOptions = await apiService.getRouteAnalysis(
-                    startAddress: startAddress,
-                    endAddress: destinationName,
+                      startAddress: startAddress,
+                      endAddress: finalRouteDestinationName,
+                      endLatitude: endLat,
+                      endLongitude: endLon,
                   );
+
+                  if (routeOptions == null || routeOptions.isEmpty) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("경로 정보를 찾을 수 없습니다.")),
+                      );
+                      setState(() { _isLoadingLocation = false; });
+                    }
+                    return;
+                  }
+
+                  final firstOption = routeOptions.first;
+                  double historyEndLat = endLat;
+                  double historyEndLon = endLon;
+                  final lastSegment = firstOption.pathSegments.last;
+                  NLatLng? finalDestinaionCoord;
+
+                  if (lastSegment.type == '도보' && firstOption.pathSegments.length > 1) {
+                    final previousSegment = firstOption.pathSegments[firstOption.pathSegments.length - 2];
+                    finalDestinaionCoord = previousSegment.lineCoords?.last;
+                  }
+                  else if (lastSegment.lineCoords != null && lastSegment.lineCoords!.isNotEmpty) {
+                    finalDestinaionCoord = lastSegment.lineCoords!.last;
+                  }
+                  if (finalDestinaionCoord != null) {
+                    historyEndLat = finalDestinaionCoord.latitude;
+                    historyEndLon = finalDestinaionCoord.longitude;
+                  }
 
                   if (routeOptions != null && routeOptions.isNotEmpty) {
                     print('-----------------------------------------');
@@ -284,22 +342,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     print('-----------------------------------------');
                   }
 
-                  if (routeOptions == null || routeOptions.isEmpty) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("경로 정보를 찾을 수 없습니다.")),
-                      );
-                      setState(() { _isLoadingLocation = false; });
-                    }
-                    return;
-                  }
                   final newSearch = SearchHistory(
                     startName: startAddress,
                     startLatitude: startLat,
                     startLongitude: startLon,
                     endName: destinationName,
-                    endLatitude: endLat,
-                    endLongitude: endLon,
+                    endLatitude: historyEndLat,
+                    endLongitude: historyEndLon,
                     createdAt: DateTime.now(),
                   );
                   await DatabaseHelper.instance.addOrUpdateSearchHistory(newSearch);

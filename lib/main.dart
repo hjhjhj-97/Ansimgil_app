@@ -49,7 +49,46 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/guidance_start',
       builder: (BuildContext context, GoRouterState state) {
-        return const GuidanceStartScreen();
+        final extraData = state.extra;
+        if (extraData is Map<String, dynamic> &&
+            extraData.containsKey('option') &&
+            extraData.containsKey('searchHistory')) {
+          final RouteOption option = extraData['option'] as RouteOption;
+          final SearchHistory history = extraData['searchHistory'] as SearchHistory;
+          return GuidanceStartScreen(option: option, searchHistory: history);
+        } else {
+          String missingKeys = '';
+          if (extraData == null || extraData is! Map<String, dynamic>) {
+            missingKeys = '전달된 데이터(extra) 없음 또는 형식 오류';
+          } else {
+            if (!extraData.containsKey('option')) {
+              missingKeys += ' [option]';
+            }
+            if (!extraData.containsKey('searchHistory')) {
+              missingKeys += ' [searchHistory]';
+            }
+          }
+          return Scaffold(
+            appBar: AppBar(title: Text('오류 발생'),),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '오류 : 길 안내를 시작할 경로 정보를 불러올 수 없습니다.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '🚨 디버깅 정보 (누락된 키): $missingKeys', // 디버깅 정보 표시
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
       },
     ),
     GoRoute(

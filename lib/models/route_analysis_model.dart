@@ -1,3 +1,5 @@
+import 'package:flutter_naver_map/flutter_naver_map.dart';
+
 class BusStop {
   final String stationName;
   final double lon;
@@ -15,6 +17,7 @@ class PathSegment {
   final int sectionTime;
   final int distance;
   final List<BusStop>? busStops;
+  final List<NLatLng>? lineCoords;
 
   PathSegment.fromJson(Map<String, dynamic> json)
       : type = json['type'] as String,
@@ -23,7 +26,12 @@ class PathSegment {
         distance = json['distance'] as int,
         busStops = (json['busStops'] as List?)
             ?.map((e) => BusStop.fromJson(e as Map<String, dynamic>))
-            .toList();
+            .toList(),
+        lineCoords = (json['type'] as String) == '버스' && (json['busStops'] as List?) != null
+            ? (json['busStops'] as List)
+            .map((e) => BusStop.fromJson(e as Map<String, dynamic>))
+            .map((e) => NLatLng(e.lat, e.lon)).toList() : null;
+
 }
 
 class RouteOption {
@@ -32,6 +40,7 @@ class RouteOption {
   final int totalFare;
   final int transferCount;
   final List<PathSegment> pathSegments;
+  final List<NLatLng> fullRouteCoords;
 
   RouteOption.fromJson(Map<String, dynamic> json)
       : totalTime = json['totalTime'] as int,
@@ -40,5 +49,9 @@ class RouteOption {
         transferCount = json['transferCount'] as int,
         pathSegments = (json['pathSegments'] as List)
             .map((e) => PathSegment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        fullRouteCoords = (json['pathSegments'] as List)
+            .expand((e) => PathSegment.fromJson(e as Map<String, dynamic>).lineCoords ?? [])
+            .cast<NLatLng>()
             .toList();
 }

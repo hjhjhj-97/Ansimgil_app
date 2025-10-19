@@ -25,7 +25,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
   }
   
   Future<void> _loadFavoriteStatus() async {
-    final dbHelper = await DatabaseHelper.instance;
+    final dbHelper = DatabaseHelper.instance;
     final allFavorites = await dbHelper.getAllFavorites();
     try{
       final favorite = allFavorites.firstWhere(
@@ -46,7 +46,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
   }
   
   Future<void> _toggleFavorite() async {
-    final dbHelper = await DatabaseHelper.instance;
+    final dbHelper = DatabaseHelper.instance;
     if(_isFavorite) {
       if(_favoriteId != null) {
         await dbHelper.deleteFavorite(_favoriteId!);
@@ -220,7 +220,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
     }
 
     return ListTile(
-      leading: Icon(icon, color: color,),
+      leading: ExcludeSemantics(
+          child: Icon(icon, color: color,)),
       title: Text(
         '${segment.description} (${segment.sectionTime}분 소요)',
         style: Theme.of(context).textTheme.titleMedium,

@@ -124,8 +124,7 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
               ),
               onTap: () {
                     final history = _searchHistoryList[index];
-                    context.push('/search', extra: history);
-                    // TODO: 해당 경로를 선택하여 경로 상세 화면으로 이동하는 로직
+                    context.push('/route_loading', extra: history);
                   },
                 ),
               );

@@ -3,9 +3,9 @@ class Favorite {
   final String startName;
   final double startLatitude;
   final double startLongitude;
-  final String? endName;
-  final double? endLatitude;
-  final double? endLongitude;
+  final String endName;
+  final double endLatitude;
+  final double endLongitude;
   final DateTime createdAt;
 
   Favorite({
@@ -13,9 +13,9 @@ class Favorite {
     required this.startName,
     required this.startLatitude,
     required this.startLongitude,
-    this.endName,
-    this.endLatitude,
-    this.endLongitude,
+    required this.endName,
+    required this.endLatitude,
+    required this.endLongitude,
     required this.createdAt,
   });
 

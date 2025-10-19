@@ -1,5 +1,6 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/favorite.dart';
+import 'package:ansimgil_app/data/search_history.dart';
 import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -104,7 +105,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             itemCount: favorites.length,
             itemBuilder: (context, index) {
               final item = favorites[index];
-              final String title = '${item.startName} → ${item.endName ?? '도착지 없음'}';
+              final String title = '${item.startName} → ${item.endName}';
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                 child: Card(
@@ -121,14 +122,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       icon: Icon(Icons.delete, color: Colors.redAccent),
                       tooltip: '"${title} 즐겨찾기 삭제',
                       onPressed: () {
-                        _deleteFavorite(item.id!, item.startName);
+                        _deleteFavorite(item.id!, title);
                       },
                     ),
                     onTap: () {
-                      // TODO: 해당 경로/장소를 선택하여 경로 탐색 화면으로 자동 입력/이동
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('"${item.startName}" 경로 탐색을 시작합니다.')),
+                      final searchItem = SearchHistory(
+                          startName: item.startName,
+                          startLatitude: item.startLatitude,
+                          startLongitude: item.startLongitude,
+                          endName: item.endName,
+                          endLatitude: item.endLatitude,
+                          endLongitude: item.endLongitude,
+                          createdAt: DateTime.now()
                       );
+                      context.push('/route_loading', extra: searchItem);
                     },
                   ),
                 ),

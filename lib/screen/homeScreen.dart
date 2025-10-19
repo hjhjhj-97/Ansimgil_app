@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   );
   bool _isLoadingLocation = true;
   String _currentAddress = '현재 위치 주소 찾는 중...';
+  bool _isInfoDialogShown = false;
 
   @override
   void initState() {
@@ -33,6 +34,37 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _destinationController.dispose();
     super.dispose();
+  }
+
+  void _showInfoDialogOnce(BuildContext context) {
+    if (mounted && !_isInfoDialogShown) {
+      setState(() {
+        _isInfoDialogShown = true;
+      });
+      showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: Text('안심길 앱 안내'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget> [
+                    Text('정확한 안내를 위해 건물명으로 검색 시 지역명을 앞에 꼭 붙여주세요. 예: 진주제일병원'),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('확인'),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                )
+              ],
+            );
+          }
+      );
+    }
   }
 
   Future<void> _getCurrentLocationAndSetMap() async {
@@ -118,6 +150,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showInfoDialogOnce(context);
+    });
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       endDrawer: Drawer(
@@ -265,18 +300,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     return;
                   }
 
-                  String finalRouteDestinationName = destinationName;
-                  String regionPrefix = '';
-                  final startAddressParts = startAddress.split(' ');
-                  if (startAddressParts.length >= 2) {
-                    regionPrefix = '${startAddressParts[0]} ${startAddressParts[1]}';
-                  }
-                  if (regionPrefix.isNotEmpty && !destinationName.contains(startAddressParts[1])) {
-                    finalRouteDestinationName = '$regionPrefix $destinationName';
-                  }
-                  print('경로 검색어 보정: $finalRouteDestinationName');
+                  // String finalRouteDestinationName = destinationName;
+                  // String regionPrefix = '';
+                  // final startAddressParts = startAddress.split(' ');
+                  // if (startAddressParts.length >= 2) {
+                  //   regionPrefix = '${startAddressParts[0]} ${startAddressParts[1]}';
+                  // }
+                  // if (regionPrefix.isNotEmpty && !destinationName.contains(startAddressParts[1])) {
+                  //   finalRouteDestinationName = '$regionPrefix $destinationName';
+                  // }
+                  // print('경로 검색어 보정: $finalRouteDestinationName');
 
-                  final destinationCords = await apiService.getCoordinatesFromAddress(finalRouteDestinationName);
+                  final destinationCords = await apiService.getCoordinatesFromAddress(destinationName);
                   if (destinationCords == null) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -291,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   final routeOptions = await apiService.getRouteAnalysis(
                       startAddress: startAddress,
-                      endAddress: finalRouteDestinationName,
+                      endAddress: destinationName,
                       endLatitude: endLat,
                       endLongitude: endLon,
                   );

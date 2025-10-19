@@ -1,5 +1,3 @@
-import 'package:ansimgil_app/data/database_helper.dart';
-import 'package:ansimgil_app/data/favorite.dart';
 import 'package:ansimgil_app/data/search_history.dart';
 import 'package:ansimgil_app/models/route_analysis_model.dart';
 import 'package:ansimgil_app/screen/add_contact_screen.dart';
@@ -7,6 +5,7 @@ import 'package:ansimgil_app/screen/emergencyContanctsScreen.dart';
 import 'package:ansimgil_app/screen/favoriteScreen.dart';
 import 'package:ansimgil_app/screen/guidanceStartScreen.dart';
 import 'package:ansimgil_app/screen/homeScreen.dart';
+import 'package:ansimgil_app/screen/route_loading_screen.dart';
 import 'package:ansimgil_app/screen/searchHistoryScreen.dart';
 import 'package:ansimgil_app/screen/routeDetailScreen.dart';
 import 'package:ansimgil_app/screen/settingScreen.dart';
@@ -119,6 +118,14 @@ final GoRouter _router = GoRouter(
         path: '/add_contacts',
         builder: (BuildContext context, GoRouterState state) {
           return const AddContactScreen();
+        }
+    ),
+    GoRoute(
+        path: '/route_loading',
+        name: 'loading',
+        builder: (BuildContext context, GoRouterState state) {
+          final history = state.extra as SearchHistory;
+          return RouteLoadingScreen(history: history);
         }
     )
   ],

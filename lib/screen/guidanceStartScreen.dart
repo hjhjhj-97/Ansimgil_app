@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:ansimgil_app/data/search_history.dart';
 import 'package:ansimgil_app/models/route_analysis_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,15 +22,32 @@ class _GuidanceStartScreenState extends State<GuidanceStartScreen> {
   final Set<NAddableOverlay> _overlays = {};
   StreamSubscription<Position>? _positionSubscription;
   NMarker? _userMarker;
+  late FlutterTts flutterTts;
 
   @override
   void initState() {
     super.initState();
+    _initializeTts();
+  }
+
+  void _initializeTts() async {
+    flutterTts = FlutterTts();
+    await flutterTts.setLanguage("ko-KR");
+    await flutterTts.setSpeechRate(0.5);
+    await flutterTts.setVolume(1.0);
+  }
+
+  Future<void> _speak(String message) async {
+    if (message.isNotEmpty) {
+      await flutterTts.stop();
+      await flutterTts.speak(message);
+    }
   }
 
   @override
   void dispose() {
     _positionSubscription?.cancel();
+    flutterTts.stop();
     super.dispose();
   }
 
@@ -202,22 +221,26 @@ class _GuidanceStartScreenState extends State<GuidanceStartScreen> {
 
       body: Stack(
         children: [
-          NaverMap(
-            options: NaverMapViewOptions(
-              initialCameraPosition: NCameraPosition(
-                  target: NLatLng(
-                      (widget.searchHistory.startLatitude + widget.searchHistory.endLatitude) / 2,
-                      (widget.searchHistory.startLongitude + widget.searchHistory.endLongitude) / 2)
-                  , zoom: 13
+          ExcludeSemantics(
+            child: NaverMap(
+              options: NaverMapViewOptions(
+                initialCameraPosition: NCameraPosition(
+                    target: NLatLng(
+                        (widget.searchHistory.startLatitude + widget.searchHistory.endLatitude) / 2,
+                        (widget.searchHistory.startLongitude + widget.searchHistory.endLongitude) / 2)
+                    , zoom: 13
+                ),
+                locationButtonEnable: true,
+                nightModeEnable : theme.brightness == Brightness.dark,
               ),
-              locationButtonEnable: true,
-              nightModeEnable : theme.brightness == Brightness.dark,
+              onMapReady: (controller) {
+                _mapController = controller;
+                controller.setLocationTrackingMode(NLocationTrackingMode.follow);
+                _drawRouteOnMap();
+                _startLocationUpdates();
+                _speak('${widget.searchHistory.endName}까지 길 안내를 시작합니다.');
+              },
             ),
-            onMapReady: (controller) {
-              _mapController = controller;
-              _drawRouteOnMap();
-              _startLocationUpdates();
-            },
           ),
 
           Align(
@@ -228,11 +251,16 @@ class _GuidanceStartScreenState extends State<GuidanceStartScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.go('/home');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('길 안내를 종료합니다.'), duration: Duration(seconds: 1)),
-                    );
+                  onPressed: () async {
+                    const String exitMessage = '길 안내를 종료합니다.';
+                    SemanticsService.announce(exitMessage, TextDirection.ltr);
+                    await Future.delayed(const Duration(seconds: 2));
+                    if (mounted) {
+                      context.go('/home');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('길 안내를 종료합니다.'), duration: Duration(seconds: 1)),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.error,

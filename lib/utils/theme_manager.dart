@@ -9,16 +9,18 @@ final TextTheme _baseTextTheme = Typography.englishLike2021.apply(
   fontFamily: 'Pretendard',
 );
 
+final TextTheme _defaultTextTheme = _baseTextTheme.apply(
+  displayColor: darkBlue,
+  bodyColor: Colors.black87,
+);
+
 final ThemeData defaultTheme = ThemeData(
   primaryColor: darkBlue,
   colorScheme: ColorScheme.fromSeed(
       seedColor: darkBlue,
       brightness: Brightness.light,
   ),
-  textTheme: _baseTextTheme.apply(
-    displayColor: darkBlue,
-    bodyColor: Colors.black87,
-  ),
+  textTheme: _defaultTextTheme,
   appBarTheme: const AppBarTheme(
     backgroundColor: darkBlue,
     foregroundColor: Colors.white,
@@ -36,8 +38,8 @@ final ThemeData defaultTheme = ThemeData(
     ),
   ),
   dialogTheme: DialogTheme(
-    titleTextStyle: _baseTextTheme.titleLarge,
-    contentTextStyle: _baseTextTheme.bodyMedium,
+    titleTextStyle: _defaultTextTheme.titleLarge,
+    contentTextStyle: _defaultTextTheme.bodyMedium,
   ),
   cardTheme: CardTheme(
     color: Colors.white,

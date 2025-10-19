@@ -17,11 +17,29 @@ class RouteDetailScreen extends StatefulWidget {
 class _RouteDetailScreenState extends State<RouteDetailScreen> {
   bool _isFavorite = false;
   int? _favoriteId;
+  final double _K_BASE = 1.5;
+  int _adjustedTotalTime = 0;
   
   @override
   void initState() {
     super.initState();
     _loadFavoriteStatus();
+    _calculatedAdjustedTotalTime();
+  }
+
+  void _calculatedAdjustedTotalTime() {
+    int totalTime = 0;
+    for (var segment in widget.routeOption.pathSegments) {
+      if (segment.type == '도보') {
+        double adjustedTime = segment.sectionTime * _K_BASE;
+        totalTime += adjustedTime.ceil();
+      } else {
+        totalTime += segment.sectionTime;
+      }
+    }
+    setState(() {
+      _adjustedTotalTime = totalTime;
+    });
   }
   
   Future<void> _loadFavoriteStatus() async {
@@ -177,7 +195,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildSummaryItem('총 시간', '${option.totalTime}분', Colors.blue),
+            _buildSummaryItem('총 시간', '${_adjustedTotalTime}분', Colors.blue),
             _buildSummaryItem('총 거리', '${(option.totalDistance / 1000).toStringAsFixed(1)}km', Colors.grey),
             _buildSummaryItem('총 요금', '${option.totalFare}원', Colors.green),
             _buildSummaryItem('환승', '${option.transferCount}회', Colors.orange),
@@ -200,11 +218,15 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
 
     IconData icon;
     Color color;
+    int displayTimeMinutes = segment.sectionTime;
 
     switch (segment.type) {
       case '도보':
         icon = isLast ? Icons.location_on : Icons.directions_walk;
         color = isLast ? Colors.red : Theme.of(context).primaryColor;
+        double adjustedTime = segment.sectionTime * _K_BASE;
+        displayTimeMinutes = adjustedTime.ceil();
+
         break;
       case '버스':
         icon = Icons.directions_bus;
@@ -223,7 +245,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
       leading: ExcludeSemantics(
           child: Icon(icon, color: color,)),
       title: Text(
-        '${segment.description} (${segment.sectionTime}분 소요)',
+        '${segment.description} (${displayTimeMinutes}분 소요)',
         style: Theme.of(context).textTheme.titleMedium,
       ),
       subtitle: segment.busStops != null && segment.busStops!.isNotEmpty

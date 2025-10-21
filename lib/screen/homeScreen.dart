@@ -1,11 +1,13 @@
 import 'package:ansimgil_app/data/database_helper.dart';
 import 'package:ansimgil_app/data/search_history.dart';
 import 'package:ansimgil_app/services/api_service.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ansimgil_app/widgets/custom_drawer_item.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,17 +25,84 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingLocation = true;
   String _currentAddress = '현재 위치 주소 찾는 중...';
   bool _isInfoDialogShown = false;
+  stt.SpeechToText _speechToText = stt.SpeechToText();
+  bool _speechEnabled = false;
+  bool _isListening = false;
+  String _lastWords = '';
 
   @override
   void initState() {
     super.initState();
+    _initSpeech();
     _getCurrentLocationAndSetMap();
   }
 
   @override
   void dispose() {
     _destinationController.dispose();
+    _speechToText.stop();
     super.dispose();
+  }
+  
+  void _initSpeech() async {
+    _speechEnabled = await _speechToText.initialize(
+      onError: (e) => print('STT 초기화 오류: $e'),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _toggleRecording() async {
+    if (! _speechEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('음성 인식이 비활성화 되어있습니다.설정을 확인해 주세요.')),
+        );
+      }
+      return;
+    }
+      if (_isListening) {
+        _speechToTextStop();
+      } else {
+        _speechToTextStart();
+    }
+  }
+  
+  void _speechToTextStart() async {
+    if (mounted) {
+      setState(() {
+        _isListening = true;
+        _destinationController.text = '';
+        _lastWords = '';
+      });
+    }
+    await _speechToText.listen(
+      onResult: (result) {
+        if (mounted) {
+          setState(() {
+            _lastWords = result.recognizedWords;
+          });
+        }
+        if (result.finalResult) {
+          _destinationController.text = _lastWords;
+          _speechToTextStop();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('음성 인식 결과: ${_lastWords.isNotEmpty ? _lastWords : '다시 말씀해주세요.'}')),
+            );
+          }
+        }
+      },
+      localeId: 'ko-KR',
+      listenFor: const Duration(seconds: 10),
+    );
+  }
+
+  void _speechToTextStop() {
+    if (mounted) {
+      setState(() {
+        _isListening = false;
+      });
+    }
   }
 
   void _showInfoDialogOnce(BuildContext context) {
@@ -229,24 +298,52 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Semantics(
-                      label:'음성 검색',
-                      child: Icon(Icons.mic, color:theme.primaryColor,),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children:[
+                  Text(_isListening
+                      ? '마이크 버튼을 눌러 녹음을 완료하세요.'
+                      : '목적지를 음성으로 검색하거나 직접 입력하세요.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: _isListening ? Colors.red.shade700 : theme.textTheme.bodyMedium?.color,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _destinationController,
-                      decoration: InputDecoration(
-                        hintText: '음성 검색 또는 입력해주세요.',
-                        hintStyle: theme.inputDecorationTheme.hintStyle,
-                        border: UnderlineInputBorder(borderSide: BorderSide.none)
+                  const SizedBox(height: 8,),
+                  Row(
+                    children: [
+                      AvatarGlow(
+                        animate: _isListening,
+                        glowColor: Theme.of(context).primaryColor,
+                        duration: const Duration(milliseconds: 2000),
+                        repeat: true,
+                        glowCount: 2,
+                        child: Semantics(
+                          label:'음성 검색',
+                          child: IconButton(
+                            icon: Icon(
+                              _isListening? Icons.mic_off : Icons.mic,
+                              color: _isListening? Colors.red : theme.primaryColor,
+                            ),
+                            onPressed: _toggleRecording,
+                            tooltip: _isListening? '녹음 중지 및 검색' : '음성 검색 시작',
+                          ),
+                        ),
                       ),
-                    )
+                      SizedBox(width: 5),
+                      Expanded(
+                          child: TextField(
+                            controller: _destinationController,
+                            decoration: InputDecoration(
+                                hintText: _isListening? '말씀하세요...' :'음성 검색 또는 입력해주세요.',
+                                hintStyle: theme.inputDecorationTheme.hintStyle,
+                                border: UnderlineInputBorder(borderSide: BorderSide.none)
+                            ),
+                          )
+                      ),
+                    ],
                   ),
-                ],
+                ]
               ),
             ),
             const SizedBox(height: 16,),
@@ -299,18 +396,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                     return;
                   }
-
-                  // String finalRouteDestinationName = destinationName;
-                  // String regionPrefix = '';
-                  // final startAddressParts = startAddress.split(' ');
-                  // if (startAddressParts.length >= 2) {
-                  //   regionPrefix = '${startAddressParts[0]} ${startAddressParts[1]}';
-                  // }
-                  // if (regionPrefix.isNotEmpty && !destinationName.contains(startAddressParts[1])) {
-                  //   finalRouteDestinationName = '$regionPrefix $destinationName';
-                  // }
-                  // print('경로 검색어 보정: $finalRouteDestinationName');
-
                   final destinationCords = await apiService.getCoordinatesFromAddress(destinationName);
                   if (destinationCords == null) {
                     if (mounted) {
